@@ -16,17 +16,18 @@ import { Alerts } from './pages/Alerts';
 import { Subscription } from './pages/Subscription';
 import { Settings } from './pages/Settings';
 import { Admin } from './pages/Admin';
+import { ProInsights } from './pages/ProInsights';
 import { Loader2 } from 'lucide-react';
 
 // Protected Route Component
-const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { isAuthenticated, loading, isAdmin } = useAuth();
+const ProtectedRoute = ({ children, adminOnly = false, premiumOnly = false }) => {
+  const { isAuthenticated, loading, isAdmin, isPremium } = useAuth();
   const location = useLocation();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="min-h-screen luxury-bg flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#D4AF37] animate-spin" />
       </div>
     );
   }
@@ -39,6 +40,10 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/dashboard" replace />;
   }
 
+  if (premiumOnly && !isPremium && !isAdmin) {
+    return <Navigate to="/subscription" replace />;
+  }
+
   return children;
 };
 
@@ -48,8 +53,8 @@ const PublicRoute = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="min-h-screen luxury-bg flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-[#D4AF37] animate-spin" />
       </div>
     );
   }
@@ -88,6 +93,9 @@ function AppRouter() {
       <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
       <Route path="/subscription/success" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      
+      {/* Premium Routes */}
+      <Route path="/insights" element={<ProtectedRoute premiumOnly><ProInsights /></ProtectedRoute>} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
