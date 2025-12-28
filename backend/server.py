@@ -580,7 +580,9 @@ async def generate_signal(data: SignalCreate, user: dict = Depends(require_auth)
         raise HTTPException(status_code=400, detail="Invalid timeframe")
     
     signal = await generate_ai_signal(data.currency_pair, data.timeframe)
-    await db.trading_signals.insert_one(signal)
+    # Make a copy before insert to avoid _id mutation
+    signal_to_insert = signal.copy()
+    await db.trading_signals.insert_one(signal_to_insert)
     
     # Create alert for new signal
     alert = {
@@ -592,7 +594,8 @@ async def generate_signal(data: SignalCreate, user: dict = Depends(require_auth)
         "is_read": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    await db.alerts.insert_one(alert)
+    alert_to_insert = alert.copy()
+    await db.alerts.insert_one(alert_to_insert)
     
     return signal
 
