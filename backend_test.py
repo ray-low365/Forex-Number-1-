@@ -192,11 +192,11 @@ def main():
         return 1
 
     # Authentication tests
-    if not tester.test_admin_login():
+    if not tester.test_admin_login()[0]:
         print("❌ Admin login failed, stopping tests")
         return 1
 
-    if not tester.test_regular_user_register():
+    if not tester.test_regular_user_register()[0]:
         print("❌ User registration failed, stopping tests")
         return 1
 
