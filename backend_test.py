@@ -176,9 +176,13 @@ class FXPulseTester:
         """Test admin get users"""
         return self.run_test("Admin Get Users", "GET", "admin/users", 200, use_admin=True)
 
-    def test_admin_generate_batch(self):
-        """Test admin batch signal generation"""
-        return self.run_test("Admin Generate Batch", "POST", "admin/signals/generate-batch", 200, use_admin=True)
+    def test_market_status(self):
+        """Test market status endpoint"""
+        return self.run_test("Get Market Status", "GET", "market/status", 200)
+
+    def test_pro_insights(self):
+        """Test pro insights endpoint"""
+        return self.run_test("Get Pro Insights", "GET", "pro/insights", 200, use_admin=True)
 
 def main():
     print("🚀 Starting SmartSignalFX API Tests")
