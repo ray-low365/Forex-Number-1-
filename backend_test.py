@@ -3,7 +3,7 @@ import sys
 import json
 from datetime import datetime
 
-class SmartSignalFXTester:
+class FXPulseTester:
     def __init__(self, base_url="https://smartsignalfx.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
