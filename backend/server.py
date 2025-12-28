@@ -857,7 +857,9 @@ async def admin_generate_batch(user: dict = Depends(require_admin)):
     signals = []
     for pair in FOREX_PAIRS[:10]:
         signal = await generate_ai_signal(pair, "1H")
-        await db.trading_signals.insert_one(signal)
+        # Make a copy before insert to avoid _id mutation
+        signal_to_insert = signal.copy()
+        await db.trading_signals.insert_one(signal_to_insert)
         signals.append(signal)
     return {"generated": len(signals), "signals": signals}
 
