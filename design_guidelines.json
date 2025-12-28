@@ -1,116 +1,154 @@
 {
-  "identity": {
-    "name": "E1",
-    "role": "Anti-AI Designer",
-    "philosophy": "Fusion over Imitation. Emotion First. Content is King."
-  },
-  "theme_strategy": {
-    "mode": "dark_only",
-    "reasoning": "Forex trading requires long sessions; dark mode reduces eye strain and conveys institutional precision."
+  "project_name": "FX Pulse",
+  "design_philosophy": {
+    "identity": "The Gilded Vault",
+    "core_values": [
+      "Luxurious but Friendly",
+      "Precision meets Art",
+      "Warmth over Aggression",
+      "Clarity in Complexity"
+    ],
+    "vibe": "Think 'High-End Swiss Watch' meets 'Modern Fintech'. Dark, mysterious, but illuminated by warm gold light. Not the aggressive red/green of Wall Street, but the sophisticated amber/teal of a private family office."
   },
   "typography": {
-    "primary_font": {
-      "name": "Plus Jakarta Sans",
-      "usage": "UI Elements, Headings, Body",
-      "weights": ["400", "500", "600", "700"],
-      "import_url": "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    "font_family": {
+      "heading": "Playfair Display, serif",
+      "body": "Manrope, sans-serif",
+      "mono": "JetBrains Mono, monospace"
     },
-    "secondary_font": {
-      "name": "JetBrains Mono",
-      "usage": "Prices, Tickers, Tabular Data, Code",
-      "weights": ["400", "500"],
-      "import_url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
-    },
-    "rules": [
-      "Use JetBrains Mono for ALL numerical data and currency pairs (e.g., EUR/USD).",
-      "Use Plus Jakarta Sans for labels, navigation, and marketing copy.",
-      "Headings must be tight: tracking-tight.",
-      "Labels must be uppercase and wide: tracking-widest text-xs font-semibold."
-    ]
+    "import_url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap",
+    "usage_rules": {
+      "headings": "Use Playfair Display for all H1-H3. It adds the 'Luxury' touch. Keep weights lighter (400/600) rather than bold.",
+      "body": "Use Manrope for all UI text. It is geometric but friendly.",
+      "numbers": "ALWAYS use JetBrains Mono for prices, percentages, and tabular data."
+    }
   },
   "colors": {
     "palette": {
-      "background": "#0B0F1A",
-      "surface": "#121826",
-      "surface_highlight": "#1E293B",
-      "primary": "#3B82F6",
-      "primary_hover": "#2563EB",
-      "success": "#22C55E",
-      "danger": "#EF4444",
-      "warning": "#F59E0B",
-      "neutral": "#94A3B8",
-      "border": "rgba(255, 255, 255, 0.08)"
+      "background": {
+        "default": "#0F1115",
+        "paper": "#161920",
+        "subtle": "#1C2029"
+      },
+      "primary": {
+        "DEFAULT": "#D4AF37",
+        "hover": "#C5A028",
+        "light": "#F3E5AB",
+        "dark": "#AA8C2C"
+      },
+      "secondary": {
+        "DEFAULT": "#1B202D",
+        "foreground": "#E2E8F0"
+      },
+      "accent": {
+        "gold": "#D4AF37",
+        "amber": "#FFBF00",
+        "bronze": "#CD7F32"
+      },
+      "semantic": {
+        "success": "#2E8B57",
+        "danger": "#CD5C5C",
+        "neutral": "#64748B",
+        "info": "#3B82F6"
+      },
+      "text": {
+        "primary": "#F1F5F9",
+        "secondary": "#94A3B8",
+        "muted": "#64748B",
+        "gold": "#D4AF37"
+      }
     },
-    "usage_rules": [
-      "Background is #0B0F1A. Do not use pure black.",
-      "Cards use #121826 with a 1px border of rgba(255,255,255,0.05).",
-      "Buy Signals: Text #22C55E + Bg rgba(34, 197, 94, 0.1).",
-      "Sell Signals: Text #EF4444 + Bg rgba(239, 68, 68, 0.1).",
-      "Neutral Signals: Text #94A3B8 + Bg rgba(148, 163, 184, 0.1)."
-    ]
-  },
-  "layout": {
-    "grid_system": "Control Room Grid",
-    "spacing": "Compact but breathable. Use p-4 for cards, gap-4 for grids.",
-    "container_max_width": "max-w-[1600px]",
-    "rules": [
-      "Dashboard must fill the screen height (h-screen) with scrollable internal panels.",
-      "Sidebar navigation: Fixed width (w-64), collapsible on mobile.",
-      "Right panel: Contextual details (Pair Analysis) or Notifications."
-    ]
-  },
-  "components": {
-    "SignalCard": {
-      "description": "Compact card displaying a trading signal.",
-      "structure": "Header (Pair + Time), Body (Action: BUY/SELL + Confidence Score), Footer (Take Profit / Stop Loss).",
-      "style": "Bordered, no shadow, subtle hover effect (border-primary/50)."
-    },
-    "ConfidenceMeter": {
-      "description": "Visual representation of AI confidence.",
-      "style": "Circular progress ring or thin progress bar. Color coded (Green > 70%, Yellow > 50%, Red < 50%)."
-    },
-    "DataGrid": {
-      "description": "Table for historical data.",
-      "style": "Row hover effect (bg-white/5). Mono font for all cells. Right align numbers."
+    "gradients": {
+      "gold_glow": "linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%)",
+      "dark_glass": "linear-gradient(180deg, rgba(22, 25, 32, 0.7) 0%, rgba(15, 17, 21, 0.9) 100%)",
+      "luxury_mesh": "radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.15) 0%, rgba(15, 17, 21, 0) 70%)"
     }
   },
   "visual_enhancers": {
-    "glassmorphism": "Use sparingly. Only for sticky headers or modal overlays. backdrop-blur-md bg-background/80.",
-    "gradients": "NO background gradients. Use subtle 'glow' effects behind active charts.",
-    "borders": "1px solid border-white/5 is mandatory for all cards to define structure in dark mode."
-  },
-  "motion": {
-    "micro_interactions": [
-      "Price Update Flash: Background flashes Green/Red briefly when price changes.",
-      "Hover Lift: Cards translate-y-[-2px] on hover.",
-      "Page Transition: Opacity fade (0.2s)."
-    ]
-  },
-  "images": {
-    "hero_background": {
-      "url": "https://images.pexels.com/photos/35350056/pexels-photo-35350056.jpeg",
-      "alt": "Abstract geometric data background",
-      "usage": "Landing page hero section background with heavy overlay (bg-background/90)."
+    "glassmorphism": {
+      "default": "backdrop-blur-xl bg-[#161920]/80 border border-white/5",
+      "heavy": "backdrop-blur-2xl bg-[#0F1115]/90 border border-[#D4AF37]/20",
+      "hover": "hover:bg-[#1C2029]/80 hover:border-[#D4AF37]/40 transition-all duration-300"
     },
-    "trader_social_proof": {
-      "url": "https://images.pexels.com/photos/5831253/pexels-photo-5831253.jpeg",
-      "alt": "Professional trader analyzing charts",
-      "usage": "About section or 'Why Choose Us' section."
+    "shadows": {
+      "card": "0 8px 32px -4px rgba(0, 0, 0, 0.4)",
+      "glow": "0 0 20px -5px rgba(212, 175, 55, 0.3)",
+      "text_glow": "0 0 10px rgba(212, 175, 55, 0.5)"
+    },
+    "borders": {
+      "subtle": "1px solid rgba(255, 255, 255, 0.05)",
+      "gold": "1px solid rgba(212, 175, 55, 0.3)",
+      "radius": "rounded-xl"
     }
   },
-  "universal_guidelines": [
-    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
-    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
-    "Create depth through layered design elements with z-index hierarchy.",
-    "Use glass-morphism effects with backdrop filters (12-24px blur).",
-    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms.",
-    "You MUST NOT center align the app container. This disrupts the human natural reading flow of text.",
-    "Always use modern button styles like pill-shaped, or sharp button with interaction animations.",
-    "NEVER use AI assistant Emoji characters like 🤖🧠 etc for icons.",
-    "Every interaction needs micro-animations - hover states, transitions.",
-    "Use 2-3x more spacing than feels comfortable.",
-    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations.",
-    "All interactive and key informational elements MUST include a data-testid attribute."
+  "layout_strategy": {
+    "grid_system": "Bento Grid (Asymmetrical)",
+    "spacing": "Generous. Use p-6 or p-8 for cards. Gap-6 for grids.",
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "z_index": {
+      "toast": 50,
+      "modal": 40,
+      "dropdown": 30,
+      "sticky_nav": 20,
+      "default": 1
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-gradient-to-r from-[#D4AF37] to-[#AA8C2C] text-[#0F1115] font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 rounded-full px-8 py-3",
+      "secondary": "bg-transparent border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300 rounded-full px-8 py-3",
+      "ghost": "text-slate-400 hover:text-[#D4AF37] transition-colors"
+    },
+    "cards": {
+      "base": "bg-[#161920]/60 backdrop-blur-md border border-white/5 rounded-xl p-6 hover:border-[#D4AF37]/30 transition-all duration-300 group relative overflow-hidden",
+      "highlight": "before:absolute before:inset-0 before:bg-gradient-to-b before:from-[#D4AF37]/5 before:to-transparent before:opacity-0 hover:before:opacity-100 transition-opacity"
+    },
+    "inputs": {
+      "base": "bg-[#0F1115] border border-white/10 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-lg text-white placeholder:text-slate-600"
+    }
+  },
+  "charts": {
+    "library_preference": {
+      "candlestick": "lightweight-charts (Use for main price view)",
+      "line_area": "recharts (Use for sparklines and simple trends)"
+    },
+    "colors": {
+      "up": "#2E8B57",
+      "down": "#CD5C5C",
+      "line": "#D4AF37",
+      "area_fill": "url(#goldGradient)"
+    },
+    "config": {
+      "background": "transparent",
+      "grid": "rgba(255, 255, 255, 0.03)",
+      "text": "#64748B"
+    }
+  },
+  "image_assets": {
+    "hero_bg": {
+      "url": "https://images.pexels.com/photos/5278711/pexels-photo-5278711.jpeg",
+      "alt": "Abstract Gold Wave Texture",
+      "usage": "Background overlay with low opacity (10-20%) to add texture to the dark background."
+    },
+    "trader_lifestyle": {
+      "url": "https://images.pexels.com/photos/7173012/pexels-photo-7173012.jpeg",
+      "alt": "Confident Trader at Night",
+      "usage": "Landing page 'Join the Elite' section. Use with a gradient fade-out."
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. UPDATE TAILWIND CONFIG: Add the new colors (obsidian, gold, etc.) and font families defined above.",
+    "2. UPDATE INDEX.CSS: Import the Google Fonts (Playfair Display, Manrope). Set the root variables to the new dark/gold palette.",
+    "3. LANDING PAGE: Build a 'Hero' section using the Abstract Gold Wave image as a subtle background. Use Playfair Display for the main headline: 'Trading, Elevated to an Art Form'.",
+    "4. DASHBOARD: Implement a 'Bento Grid' layout. The main chart (Lightweight Charts) should take 60% of the screen. Signal cards should be on the right.",
+    "5. SIGNALS: Use 'Gold' for the active/highlight state. Use muted Sea Green for Buy and muted Rose for Sell. Avoid neon colors.",
+    "6. PRO FEATURES: Create a 'Strategy Selector' using a glassmorphic tab system. Show 'Best Pairs' in a clean data table with JetBrains Mono numbers.",
+    "7. ANIMATIONS: Use 'animate-fade-in' and 'animate-slide-up' for entrance. Add a subtle 'pulse-gold' animation to the live signal indicators."
   ],
-  "instructions_to_main_agent": "Implement the dashboard using the 'Control Room' grid layout. Prioritize data density and legibility. Use Recharts for visualizations. Ensure the 'Signal Card' component is the hero of the dashboard. Use the provided image URLs for the landing page. Strictly follow the color palette."
+  "universal_guidelines": [
+    "Do not use gradients for text unless it is a very large headline.",
+    "Ensure all interactive elements have a hover state that involves a color shift or glow.",
+    "Use 'sonner' for all notifications (Success/Error).",
+    "Keep the UI 'breathing'. Do not clutter. Use negative space as a luxury element."
+  ]
 }
