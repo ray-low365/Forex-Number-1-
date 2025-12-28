@@ -189,10 +189,10 @@ class FXPulseTester:
         return self.run_test("Get Pro Insights", "GET", "pro/insights", 200, use_admin=True)
 
 def main():
-    print("🚀 Starting SmartSignalFX API Tests")
+    print("🚀 Starting FX Pulse API Tests")
     print("=" * 50)
     
-    tester = SmartSignalFXTester()
+    tester = FXPulseTester()
     
     # Basic health check
     if not tester.test_health_check()[0]:
