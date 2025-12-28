@@ -70,8 +70,8 @@ class SmartSignalFXTester:
             self.admin_token = response['token']
             self.admin_user_id = response['user']['user_id']
             print(f"   Admin token obtained: {self.admin_token[:20]}...")
-            return True
-        return False
+            return True, response
+        return False, {}
 
     def test_regular_user_register(self):
         """Test regular user registration"""
@@ -87,8 +87,8 @@ class SmartSignalFXTester:
             self.token = response['token']
             self.user_id = response['user']['user_id']
             print(f"   User token obtained: {self.token[:20]}...")
-            return True
-        return False
+            return True, response
+        return False, {}
 
     def test_get_me(self):
         """Test get current user"""
