@@ -64,7 +64,7 @@ class FXPulseTester:
             "POST",
             "auth/login",
             200,
-            data={"email": "admin@smartsignalfx.com", "password": "AdminFx2024!"}
+            data={"email": "admin@fxpulse.com", "password": "FxPulse2024!"}
         )
         if success and 'token' in response:
             self.admin_token = response['token']
