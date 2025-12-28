@@ -30,46 +30,45 @@ export const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + '/auth/callback';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen luxury-bg flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
+          <Link to="/" className="inline-flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA8C2C] flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-[#0F1115]" />
             </div>
-            <span className="font-bold text-xl">SmartSignalFX</span>
+            <span className="font-heading text-2xl">FX Pulse</span>
           </Link>
-          <h1 className="text-2xl font-bold">Welcome back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to access your trading signals</p>
+          <h1 className="font-heading text-2xl mb-2">Welcome Back</h1>
+          <p className="text-slate-500">Sign in to access your trading signals</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-card border border-white/5 rounded-xl p-6">
+        <div className="glass-card p-8">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="mb-6 p-4 rounded-xl bg-[#CD5C5C]/10 border border-[#CD5C5C]/20 text-[#CD5C5C] text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-400">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 bg-[#0F1115] border-white/10 focus:border-[#D4AF37] h-12"
                   required
                   data-testid="email-input"
                 />
@@ -77,16 +76,16 @@ export const Login = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-slate-400">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 bg-[#0F1115] border-white/10 focus:border-[#D4AF37] h-12"
                   required
                   data-testid="password-input"
                 />
@@ -95,7 +94,7 @@ export const Login = () => {
 
             <Button 
               type="submit" 
-              className="w-full btn-primary" 
+              className="w-full btn-primary h-12" 
               disabled={loading}
               data-testid="login-submit"
             >
@@ -110,18 +109,18 @@ export const Login = () => {
             </Button>
           </form>
 
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">or continue with</span>
+              <span className="px-4 bg-[#161920] text-slate-500">or continue with</span>
             </div>
           </div>
 
           <Button 
             variant="outline" 
-            className="w-full btn-secondary" 
+            className="w-full btn-secondary h-12" 
             onClick={handleGoogleLogin}
             data-testid="google-login"
           >
@@ -134,18 +133,18 @@ export const Login = () => {
             Continue with Google
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-center text-sm text-slate-500 mt-8">
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary hover:underline">
-              Sign up
+            <Link to="/register" className="text-[#D4AF37] hover:underline">
+              Create one
             </Link>
           </p>
         </div>
 
         {/* Admin Login Info */}
-        <div className="mt-4 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-          <p className="text-sm text-yellow-500 text-center">
-            <strong>Admin Login:</strong> admin@smartsignalfx.com / AdminFx2024!
+        <div className="mt-6 p-4 rounded-xl bg-[#D4AF37]/5 border border-[#D4AF37]/20">
+          <p className="text-sm text-[#D4AF37] text-center">
+            <strong>Admin:</strong> admin@fxpulse.com / FxPulse2024!
           </p>
         </div>
       </div>

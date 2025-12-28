@@ -37,46 +37,45 @@ export const Register = () => {
   };
 
   const handleGoogleLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + '/auth/callback';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen luxury-bg flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-white" />
+          <Link to="/" className="inline-flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA8C2C] flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-[#0F1115]" />
             </div>
-            <span className="font-bold text-xl">SmartSignalFX</span>
+            <span className="font-heading text-2xl">FX Pulse</span>
           </Link>
-          <h1 className="text-2xl font-bold">Create your account</h1>
-          <p className="text-muted-foreground mt-2">Start receiving AI-powered trading signals</p>
+          <h1 className="font-heading text-2xl mb-2">Begin Your Journey</h1>
+          <p className="text-slate-500">Create an account to access AI trading signals</p>
         </div>
 
         {/* Register Form */}
-        <div className="bg-card border border-white/5 rounded-xl p-6">
+        <div className="glass-card p-8">
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="mb-6 p-4 rounded-xl bg-[#CD5C5C]/10 border border-[#CD5C5C]/20 text-[#CD5C5C] text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name" className="text-slate-400">Full Name</Label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <Input
                   id="name"
                   type="text"
                   placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 bg-[#0F1115] border-white/10 focus:border-[#D4AF37] h-12"
                   required
                   data-testid="name-input"
                 />
@@ -84,16 +83,16 @@ export const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-400">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 bg-[#0F1115] border-white/10 focus:border-[#D4AF37] h-12"
                   required
                   data-testid="email-input"
                 />
@@ -101,27 +100,27 @@ export const Register = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-slate-400">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 bg-[#0F1115] border-white/10 focus:border-[#D4AF37] h-12"
                   required
                   minLength={6}
                   data-testid="password-input"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+              <p className="text-xs text-slate-500">Minimum 6 characters</p>
             </div>
 
             <Button 
               type="submit" 
-              className="w-full btn-primary" 
+              className="w-full btn-primary h-12" 
               disabled={loading}
               data-testid="register-submit"
             >
@@ -136,18 +135,18 @@ export const Register = () => {
             </Button>
           </form>
 
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">or continue with</span>
+              <span className="px-4 bg-[#161920] text-slate-500">or continue with</span>
             </div>
           </div>
 
           <Button 
             variant="outline" 
-            className="w-full btn-secondary" 
+            className="w-full btn-secondary h-12" 
             onClick={handleGoogleLogin}
             data-testid="google-register"
           >
@@ -160,15 +159,15 @@ export const Register = () => {
             Continue with Google
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-center text-sm text-slate-500 mt-8">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:underline">
+            <Link to="/login" className="text-[#D4AF37] hover:underline">
               Sign in
             </Link>
           </p>
         </div>
 
-        <p className="text-xs text-center text-muted-foreground mt-6">
+        <p className="text-xs text-center text-slate-600 mt-6">
           By creating an account, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
