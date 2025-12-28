@@ -99,8 +99,8 @@ class SmartSignalFXTester:
         success, response = self.run_test("Get Forex Pairs", "GET", "pairs", 200)
         if success and 'pairs' in response and 'timeframes' in response:
             print(f"   Found {len(response['pairs'])} pairs and {len(response['timeframes'])} timeframes")
-            return True
-        return False
+            return True, response
+        return False, {}
 
     def test_get_signals(self):
         """Test get signals"""
