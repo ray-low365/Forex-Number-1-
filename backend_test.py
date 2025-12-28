@@ -252,6 +252,10 @@ def main():
     if not tester.test_subscription_plans()[0]:
         print("❌ Get subscription plans failed")
 
+    # Market status test (new feature)
+    if not tester.test_market_status()[0]:
+        print("❌ Get market status failed")
+
     # Admin tests
     if not tester.test_admin_get_stats()[0]:
         print("❌ Admin get stats failed")
@@ -264,6 +268,10 @@ def main():
 
     if not tester.test_admin_generate_batch()[0]:
         print("❌ Admin generate batch failed")
+
+    # Pro insights test (new feature)
+    if not tester.test_pro_insights()[0]:
+        print("❌ Get pro insights failed")
 
     # Print results
     print("\n" + "=" * 50)
