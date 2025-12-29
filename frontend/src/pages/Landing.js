@@ -1,71 +1,92 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, Shield, Zap, BarChart3, Target, Clock, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { TrendingUp, Zap, BarChart3, Target, Clock, ArrowRight, CheckCircle2, Sparkles, Shield, Globe } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
 const features = [
   {
     icon: Zap,
-    title: "AI-Powered Precision",
-    description: "Advanced algorithms analyze market patterns to deliver high-probability signals with remarkable accuracy."
+    title: "AI-POWERED SIGNALS",
+    description: "Real-time predictions using advanced algorithms. Get ahead of the market."
   },
   {
     icon: Target,
-    title: "Predictive Insights",
-    description: "See where the market is heading with signals that predict price movements 1 minute ahead."
-  },
-  {
-    icon: Shield,
-    title: "Elegant Risk Management",
-    description: "Sophisticated position calculators and risk tools to protect and grow your capital gracefully."
+    title: "PREDICTIVE ANALYTICS",
+    description: "See price movements 1 minute before they happen. Trade with confidence."
   },
   {
     icon: BarChart3,
-    title: "Real-Time Analytics",
-    description: "Live charts with detailed candlestick patterns and technical indicators for informed decisions."
+    title: "LIVE CRYPTO DATA",
+    description: "Real-time BTC, ETH, SOL prices from CoinGecko. No delays."
   },
   {
-    icon: Clock,
-    title: "Market Session Intelligence",
-    description: "Know exactly which markets are open and the optimal times to trade each currency pair."
+    icon: Globe,
+    title: "24/7 MARKETS",
+    description: "Forex sessions + Crypto never sleeps. Trade anytime, anywhere."
+  },
+  {
+    icon: Shield,
+    title: "RISK CALCULATOR",
+    description: "Smart position sizing. Protect your capital like a pro."
   },
   {
     icon: Sparkles,
-    title: "Pro Strategy Insights",
-    description: "Exclusive recommendations for Algorithmic, News, and Carry trading strategies."
+    title: "PRO STRATEGIES",
+    description: "Algo trading, news trading, carry trade insights. Level up."
   }
 ];
 
 const stats = [
-  { value: "82%", label: "Win Rate" },
-  { value: "2.4:1", label: "Avg R:R" },
-  { value: "500+", label: "Monthly Signals" },
-  { value: "24/7", label: "Market Coverage" }
+  { value: "30+", label: "PAIRS" },
+  { value: "8", label: "TIMEFRAMES" },
+  { value: "LIVE", label: "CRYPTO DATA" },
+  { value: "24/7", label: "MARKETS" }
 ];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 
 export const Landing = () => {
   return (
-    <div className="min-h-screen luxury-bg">
+    <div className="min-h-screen bg-[var(--bg-primary)] overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[var(--accent-primary)] rounded-full blur-[200px] opacity-10 animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[var(--accent-secondary)] rounded-full blur-[180px] opacity-10" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-[var(--accent-tertiary)] rounded-full blur-[150px] opacity-5" style={{ animationDelay: '2s' }} />
+      </div>
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0F1115]/80 border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[var(--bg-primary)]/80 border-b border-[var(--border-color)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA8C2C] flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-[#0F1115]" />
+              <div className="w-10 h-10 rounded-lg bg-[var(--gradient-main)] flex items-center justify-center transform -skew-x-6">
+                <TrendingUp className="w-5 h-5 text-[var(--bg-primary)]" />
               </div>
-              <span className="font-heading text-xl tracking-tight">FX Pulse</span>
+              <span className="font-heading text-xl font-bold tracking-tighter uppercase">FX PULSE</span>
             </Link>
             <div className="flex items-center gap-4">
               <Link to="/login">
-                <Button variant="ghost" className="text-slate-400 hover:text-[#D4AF37]" data-testid="login-btn">
-                  Login
+                <Button variant="ghost" className="text-[var(--text-secondary)] hover:text-[var(--accent-primary)]" data-testid="login-btn">
+                  LOGIN
                 </Button>
               </Link>
               <Link to="/register">
-                <Button className="btn-primary" data-testid="get-started-btn">
-                  Get Started
-                </Button>
+                <button className="btn-primary" data-testid="get-started-btn">
+                  <span>GET STARTED</span>
+                </button>
               </Link>
             </div>
           </div>
@@ -73,182 +94,243 @@ export const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-24 px-4 relative overflow-hidden">
-        {/* Subtle gold ambient glow */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/20 rounded-full blur-[150px]" />
-          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-[#D4AF37]/10 rounded-full blur-[120px]" />
-        </div>
-        
-        <div className="max-w-7xl mx-auto relative">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 mb-8">
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse-gold" />
-              <span className="text-sm text-[#D4AF37] font-medium">AI-Powered Trading Intelligence</span>
-            </div>
-            
-            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl tracking-tight mb-6 leading-tight">
-              Trading, Elevated to{' '}
-              <span className="text-gold-gradient">an Art Form</span>
-            </h1>
-            
-            <p className="text-lg sm:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Experience the sophistication of AI-driven forex signals. Precise predictions, 
-              elegant risk management, and real-time market intelligence — all in one refined platform.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/register">
-                <Button size="lg" className="btn-primary text-lg px-10 py-4" data-testid="hero-cta">
-                  Begin Your Journey
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button size="lg" className="btn-secondary text-lg px-10 py-4">
-                  Explore Demo
-                </Button>
-              </Link>
-            </div>
-          </div>
+      <section className="pt-32 pb-20 px-4 relative">
+        <motion.div 
+          className="max-w-7xl mx-auto text-center"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
+          <motion.div 
+            variants={itemVariants}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-none bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/30 mb-8 transform -skew-x-6"
+          >
+            <span className="w-2 h-2 rounded-full bg-[var(--accent-primary)] animate-pulse" />
+            <span className="text-sm text-[var(--accent-primary)] font-bold uppercase tracking-widest transform skew-x-6">LIVE TRADING SIGNALS</span>
+          </motion.div>
+          
+          <motion.h1 
+            variants={itemVariants}
+            className="font-heading text-5xl sm:text-6xl lg:text-8xl font-extrabold tracking-tighter uppercase mb-6"
+          >
+            TRADE THE
+            <br />
+            <span className="text-gradient">FUTURE</span>
+          </motion.h1>
+          
+          <motion.p 
+            variants={itemVariants}
+            className="text-lg sm:text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto"
+          >
+            AI-powered predictions. Real-time crypto from CoinGecko. 
+            Forex & Crypto in one place. Built for Gen Z traders.
+          </motion.p>
+          
+          <motion.div 
+            variants={itemVariants}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Link to="/register">
+              <button className="btn-primary text-lg" data-testid="hero-cta">
+                <span className="flex items-center gap-2">
+                  START TRADING
+                  <ArrowRight className="w-5 h-5" />
+                </span>
+              </button>
+            </Link>
+            <Link to="/login">
+              <button className="btn-secondary text-lg">
+                <span>VIEW DEMO</span>
+              </button>
+            </Link>
+          </motion.div>
 
           {/* Stats */}
-          <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <motion.div 
+            variants={containerVariants}
+            className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4"
+          >
             {stats.map((stat, index) => (
-              <div key={index} className="text-center p-8 glass-card glass-card-hover">
-                <p className="text-3xl sm:text-4xl font-heading text-[#D4AF37] mb-2">{stat.value}</p>
-                <p className="text-sm text-slate-500 uppercase tracking-widest">{stat.label}</p>
-              </div>
+              <motion.div 
+                key={index}
+                variants={itemVariants}
+                className="glass-card glass-card-hover p-6 text-center transform -skew-x-3"
+              >
+                <p className="text-3xl sm:text-4xl font-heading font-extrabold text-[var(--accent-primary)] mb-1 transform skew-x-3">{stat.value}</p>
+                <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest transform skew-x-3">{stat.label}</p>
+              </motion.div>
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 px-4">
+      <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">
-              Crafted for the Discerning Trader
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tighter uppercase mb-4">
+              BUILT FOR <span className="text-gradient">WINNERS</span>
             </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Every feature designed with precision and elegance to elevate your trading experience.
+            <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
+              Everything you need to dominate the markets
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="p-8 glass-card glass-card-hover group"
+              <motion.div 
+                key={index}
+                variants={itemVariants}
+                className="glass-card glass-card-hover p-6 group"
               >
-                <div className="w-14 h-14 rounded-xl bg-[#D4AF37]/10 flex items-center justify-center mb-6 group-hover:bg-[#D4AF37]/20 transition-colors">
-                  <feature.icon className="w-7 h-7 text-[#D4AF37]" />
+                <div className="w-12 h-12 rounded-lg bg-[var(--accent-primary)]/10 flex items-center justify-center mb-4 group-hover:bg-[var(--accent-primary)]/20 transition-colors transform -skew-x-6">
+                  <feature.icon className="w-6 h-6 text-[var(--accent-primary)] transform skew-x-6" />
                 </div>
-                <h3 className="font-heading text-xl mb-3">{feature.title}</h3>
-                <p className="text-slate-400 leading-relaxed">{feature.description}</p>
-              </div>
+                <h3 className="font-heading text-lg font-bold uppercase tracking-tight mb-2">{feature.title}</h3>
+                <p className="text-[var(--text-secondary)] text-sm">{feature.description}</p>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Pricing Preview */}
-      <section className="py-24 px-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#D4AF37]/5 to-transparent" />
+      {/* Pricing */}
+      <section className="py-20 px-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--accent-primary)]/5 to-transparent" />
         
         <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-4">
-              Invest in Excellence
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tighter uppercase mb-4">
+              PICK YOUR <span className="text-gradient">LEVEL</span>
             </h2>
-            <p className="text-lg text-slate-400">
-              Choose the plan that matches your ambitions.
-            </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Plan */}
-            <div className="p-8 glass-card">
-              <h3 className="font-heading text-2xl mb-2">Explorer</h3>
-              <p className="text-slate-400 mb-6">Begin your journey</p>
-              <p className="text-4xl font-heading mb-8">$0<span className="text-lg text-slate-500">/mo</span></p>
-              <ul className="space-y-4 mb-8">
-                {['5 signals daily', 'Major pairs', 'Basic analysis', 'Market status'].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
-                    <CheckCircle2 className="w-5 h-5 text-slate-500" />
+          <motion.div 
+            className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {/* Free */}
+            <motion.div variants={itemVariants} className="glass-card tier-free p-6">
+              <h3 className="font-heading text-xl font-bold uppercase mb-2">FREE</h3>
+              <p className="text-[var(--text-muted)] text-sm mb-4">Get started</p>
+              <p className="text-4xl font-heading font-extrabold mb-6">$0<span className="text-lg text-[var(--text-muted)]">/mo</span></p>
+              <ul className="space-y-3 mb-6">
+                {['10 pairs', 'Basic charts', '7-day data', '2 indicators'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                    <CheckCircle2 className="w-4 h-4 text-[var(--text-muted)]" />
                     {item}
                   </li>
                 ))}
               </ul>
               <Link to="/register">
-                <Button className="w-full btn-secondary" data-testid="free-plan-btn">Start Free</Button>
+                <button className="w-full btn-secondary">
+                  <span>START FREE</span>
+                </button>
               </Link>
-            </div>
+            </motion.div>
 
-            {/* Pro Plan */}
-            <div className="p-8 glass-card relative border-[#D4AF37]/30">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-5 py-1.5 bg-gradient-to-r from-[#D4AF37] to-[#AA8C2C] rounded-full text-sm font-semibold text-[#0F1115]">
-                Most Popular
+            {/* Pro */}
+            <motion.div variants={itemVariants} className="glass-card tier-pro p-6 relative border-[var(--accent-primary)]">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-[var(--accent-primary)] text-[var(--bg-primary)] text-xs font-bold uppercase tracking-wider transform -skew-x-6">
+                <span className="transform skew-x-6 inline-block">POPULAR</span>
               </div>
-              <h3 className="font-heading text-2xl mb-2 text-[#D4AF37]">Pro</h3>
-              <p className="text-slate-400 mb-6">Unlock your full potential</p>
-              <p className="text-4xl font-heading mb-8">$29.99<span className="text-lg text-slate-500">/mo</span></p>
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Unlimited signals',
-                  'All 20+ currency pairs',
-                  'Predictive AI analysis',
-                  'Real-time charts',
-                  'Strategy insights (Algo, News, Carry)',
-                  'Priority support'
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm text-slate-300">
-                    <CheckCircle2 className="w-5 h-5 text-[#D4AF37]" />
+              <h3 className="font-heading text-xl font-bold uppercase mb-2 text-[var(--accent-primary)]">PRO</h3>
+              <p className="text-[var(--text-muted)] text-sm mb-4">Level up</p>
+              <p className="text-4xl font-heading font-extrabold mb-6">$5.99<span className="text-lg text-[var(--text-muted)]">/mo</span></p>
+              <ul className="space-y-3 mb-6">
+                {['All 30+ pairs', 'All timeframes', '1-year data', 'All indicators', '10 alerts', 'No ads'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                    <CheckCircle2 className="w-4 h-4 text-[var(--accent-primary)]" />
                     {item}
                   </li>
                 ))}
               </ul>
               <Link to="/register">
-                <Button className="w-full btn-primary" data-testid="pro-plan-btn">Upgrade to Pro</Button>
+                <button className="w-full btn-primary">
+                  <span>GO PRO</span>
+                </button>
               </Link>
-            </div>
-          </div>
+            </motion.div>
+
+            {/* Premium */}
+            <motion.div variants={itemVariants} className="glass-card tier-premium p-6 border-[var(--accent-secondary)]">
+              <h3 className="font-heading text-xl font-bold uppercase mb-2 text-[var(--accent-secondary)]">PREMIUM</h3>
+              <p className="text-[var(--text-muted)] text-sm mb-4">Go all in</p>
+              <p className="text-4xl font-heading font-extrabold mb-6">$29.99<span className="text-lg text-[var(--text-muted)]">/mo</span></p>
+              <ul className="space-y-3 mb-6">
+                {['Everything in Pro', 'Advanced analytics', 'Unlimited alerts', 'API access', 'Priority support', 'Backtesting'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                    <CheckCircle2 className="w-4 h-4 text-[var(--accent-secondary)]" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/register">
+                <button className="w-full btn-secondary border-[var(--accent-secondary)] text-[var(--accent-secondary)] hover:bg-[var(--accent-secondary)] hover:text-[var(--bg-primary)]">
+                  <span>GO PREMIUM</span>
+                </button>
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="font-heading text-3xl sm:text-4xl tracking-tight mb-6">
-            Ready to Trade with Elegance?
+      {/* CTA */}
+      <section className="py-20 px-4">
+        <motion.div 
+          className="max-w-3xl mx-auto text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tighter uppercase mb-6">
+            READY TO <span className="text-gradient">TRADE?</span>
           </h2>
-          <p className="text-lg text-slate-400 mb-10">
-            Join a community of traders who appreciate precision and sophistication.
+          <p className="text-lg text-[var(--text-secondary)] mb-10">
+            Join the next generation of traders.
           </p>
           <Link to="/register">
-            <Button size="lg" className="btn-primary text-lg px-10 py-4">
-              Create Your Account
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+            <button className="btn-primary text-xl px-10 py-4">
+              <span className="flex items-center gap-2">
+                LET'S GO
+                <ArrowRight className="w-6 h-6" />
+              </span>
+            </button>
           </Link>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#D4AF37] to-[#AA8C2C] flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-[#0F1115]" />
-              </div>
-              <span className="font-heading text-lg">FX Pulse</span>
+      <footer className="py-8 px-4 border-t border-[var(--border-color)]">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[var(--gradient-main)] flex items-center justify-center transform -skew-x-6">
+              <TrendingUp className="w-4 h-4 text-[var(--bg-primary)]" />
             </div>
-            <p className="text-sm text-slate-500">
-              © 2024 FX Pulse. Trading involves risk. Not financial advice.
-            </p>
+            <span className="font-heading text-lg font-bold uppercase">FX PULSE</span>
           </div>
+          <p className="text-sm text-[var(--text-muted)]">
+            © 2024 FX Pulse. Trading involves risk. Not financial advice.
+          </p>
         </div>
       </footer>
     </div>
