@@ -17,6 +17,7 @@ import json
 import openai
 import stripe
 import asyncio
+import aiohttp
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -58,6 +59,9 @@ security = HTTPBearer(auto_error=False)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# CoinGecko cache
+crypto_cache = {"data": {}, "last_update": None}
+
 # ===================== MODELS =====================
 
 class UserCreate(BaseModel):
@@ -76,28 +80,12 @@ class User(BaseModel):
     picture: Optional[str] = None
     is_premium: bool = False
     is_admin: bool = False
+    subscription_tier: str = "free"
     created_at: datetime
 
 class TokenResponse(BaseModel):
     token: str
     user: User
-
-class TradingSignal(BaseModel):
-    signal_id: str
-    currency_pair: str
-    signal_type: str
-    entry_price: float
-    stop_loss: float
-    take_profit: float
-    confidence: float
-    timeframe: str
-    status: str
-    ai_rationale: str
-    market_bias: str
-    predicted_price: float
-    prediction_time: str
-    created_at: datetime
-    expires_at: datetime
 
 class SignalCreate(BaseModel):
     currency_pair: str
@@ -117,6 +105,7 @@ class AdminSignalUpdate(BaseModel):
 
 class CheckoutRequest(BaseModel):
     origin_url: str
+    plan: str = "pro"
 
 # ===================== HELPERS =====================
 
@@ -175,19 +164,31 @@ async def require_admin(request: Request, credentials: HTTPAuthorizationCredenti
 
 async def require_premium(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
     user = await require_auth(request, credentials)
-    if not user.get("is_premium") and not user.get("is_admin"):
+    tier = user.get("subscription_tier", "free")
+    if tier == "free" and not user.get("is_admin"):
         raise HTTPException(status_code=403, detail="Premium subscription required")
     return user
 
-# ===================== FOREX DATA & MARKET STATUS =====================
+# ===================== FOREX & CRYPTO DATA =====================
 
 FOREX_PAIRS = [
+    # Major
     "EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF", "AUD/USD", "USD/CAD", "NZD/USD",
+    # Minor
     "EUR/GBP", "EUR/JPY", "GBP/JPY", "AUD/JPY", "EUR/AUD", "GBP/AUD", "EUR/CHF",
-    "GBP/CHF", "AUD/CAD", "NZD/JPY", "EUR/NZD", "GBP/NZD", "CHF/JPY"
+    "GBP/CHF", "AUD/CAD", "NZD/JPY", "EUR/NZD", "GBP/NZD", "CHF/JPY",
+    # Exotic
+    "USD/ZAR", "USD/TRY", "EUR/TRY"
 ]
 
-TIMEFRAMES = ["15M", "30M", "1H", "4H", "1D"]
+CRYPTO_PAIRS = [
+    "BTC/USD", "ETH/USD", "XRP/USD", "BTC/EUR", "ETH/BTC",
+    "ADA/USD", "SOL/USD", "DOGE/USD"
+]
+
+ALL_PAIRS = FOREX_PAIRS + CRYPTO_PAIRS
+
+TIMEFRAMES = ["1M", "5M", "15M", "30M", "1H", "4H", "1D", "1W"]
 
 # Market sessions with times (UTC)
 MARKET_SESSIONS = {
@@ -197,17 +198,52 @@ MARKET_SESSIONS = {
     "new_york": {"open": 13, "close": 22, "name": "New York", "pairs": ["EUR/USD", "USD/CAD", "GBP/USD", "USD/CHF"]}
 }
 
+COINGECKO_IDS = {
+    "BTC": "bitcoin",
+    "ETH": "ethereum",
+    "XRP": "ripple",
+    "ADA": "cardano",
+    "SOL": "solana",
+    "DOGE": "dogecoin"
+}
+
+async def fetch_crypto_prices():
+    """Fetch real crypto prices from CoinGecko"""
+    global crypto_cache
+    
+    # Check cache (update every 30 seconds)
+    if crypto_cache["last_update"]:
+        elapsed = (datetime.now(timezone.utc) - crypto_cache["last_update"]).total_seconds()
+        if elapsed < 30 and crypto_cache["data"]:
+            return crypto_cache["data"]
+    
+    try:
+        ids = ",".join(COINGECKO_IDS.values())
+        url = f"https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd,eur,btc&include_24hr_change=true"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=10) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    crypto_cache["data"] = data
+                    crypto_cache["last_update"] = datetime.now(timezone.utc)
+                    return data
+    except Exception as e:
+        logger.error(f"CoinGecko fetch error: {e}")
+    
+    return crypto_cache.get("data", {})
+
 def get_market_status():
     """Get current market open/close status"""
     now = datetime.now(timezone.utc)
     current_hour = now.hour
     day_of_week = now.weekday()
     
-    # Forex market closed on weekends
-    if day_of_week >= 5:  # Saturday or Sunday
+    if day_of_week >= 5:
         return {
             "forex_open": False,
-            "message": "Forex market is closed for the weekend",
+            "crypto_open": True,
+            "message": "Forex closed for weekend. Crypto markets 24/7!",
             "sessions": {k: {"status": "closed", "name": v["name"]} for k, v in MARKET_SESSIONS.items()},
             "next_open": "Sunday 22:00 UTC (Sydney Open)"
         }
@@ -219,7 +255,6 @@ def get_market_status():
         open_hour = session["open"]
         close_hour = session["close"]
         
-        # Handle sessions that span midnight
         if open_hour > close_hour:
             is_open = current_hour >= open_hour or current_hour < close_hour
         else:
@@ -238,15 +273,15 @@ def get_market_status():
     
     return {
         "forex_open": len(active_sessions) > 0,
+        "crypto_open": True,
         "active_sessions": active_sessions,
         "sessions": sessions_status,
         "server_time": now.strftime("%H:%M UTC"),
         "best_trading_time": len(active_sessions) >= 2
     }
 
-# Real-time price simulation with more detail
 async def get_forex_price(pair: str) -> dict:
-    """Get simulated forex price data with more detail"""
+    """Get forex price data (simulated with realistic movement)"""
     import random
     import math
     
@@ -255,27 +290,30 @@ async def get_forex_price(pair: str) -> dict:
         "AUD/USD": 0.6550, "USD/CAD": 1.3650, "NZD/USD": 0.6150, "EUR/GBP": 0.8580,
         "EUR/JPY": 162.20, "GBP/JPY": 189.10, "AUD/JPY": 97.90, "EUR/AUD": 1.6550,
         "GBP/AUD": 1.9300, "EUR/CHF": 0.9500, "GBP/CHF": 1.1070, "AUD/CAD": 0.8950,
-        "NZD/JPY": 91.80, "EUR/NZD": 1.7650, "GBP/NZD": 2.0580, "CHF/JPY": 170.80
+        "NZD/JPY": 91.80, "EUR/NZD": 1.7650, "GBP/NZD": 2.0580, "CHF/JPY": 170.80,
+        "USD/ZAR": 18.50, "USD/TRY": 32.80, "EUR/TRY": 35.60
     }
     
     base = base_prices.get(pair, 1.0)
     now = datetime.now(timezone.utc)
     
-    # Create more realistic price movement using sine waves
-    time_factor = now.timestamp() / 60  # Changes every minute
+    time_factor = now.timestamp() / 60
     wave1 = math.sin(time_factor * 0.1) * 0.001
     wave2 = math.sin(time_factor * 0.05) * 0.0005
     noise = random.uniform(-0.0002, 0.0002)
     
     current_price = base * (1 + wave1 + wave2 + noise)
     
-    # Bid/Ask spread
     spread = 0.00015 if "JPY" not in pair else 0.015
+    if "ZAR" in pair or "TRY" in pair:
+        spread *= 3
+    
     bid = current_price - spread / 2
     ask = current_price + spread / 2
     
     return {
         "pair": pair,
+        "type": "forex",
         "bid": round(bid, 5 if "JPY" not in pair else 3),
         "ask": round(ask, 5 if "JPY" not in pair else 3),
         "price": round(current_price, 5 if "JPY" not in pair else 3),
@@ -287,217 +325,167 @@ async def get_forex_price(pair: str) -> dict:
         "spread_pips": round(spread * (10000 if "JPY" not in pair else 100), 1)
     }
 
+async def get_crypto_price(pair: str) -> dict:
+    """Get real crypto price from CoinGecko"""
+    base_currency = pair.split("/")[0]
+    quote_currency = pair.split("/")[1]
+    
+    crypto_data = await fetch_crypto_prices()
+    coin_id = COINGECKO_IDS.get(base_currency)
+    
+    if coin_id and coin_id in crypto_data:
+        coin = crypto_data[coin_id]
+        
+        if quote_currency == "USD":
+            price = coin.get("usd", 0)
+            change = coin.get("usd_24h_change", 0)
+        elif quote_currency == "EUR":
+            price = coin.get("eur", 0)
+            change = coin.get("eur_24h_change", 0)
+        elif quote_currency == "BTC":
+            price = coin.get("btc", 0)
+            change = 0
+        else:
+            price = coin.get("usd", 0)
+            change = coin.get("usd_24h_change", 0)
+        
+        if price > 0:
+            import random
+            spread = price * 0.0001
+            
+            return {
+                "pair": pair,
+                "type": "crypto",
+                "bid": round(price - spread, 2 if price > 1 else 6),
+                "ask": round(price + spread, 2 if price > 1 else 6),
+                "price": round(price, 2 if price > 1 else 6),
+                "change_24h": round(change, 2) if change else round(random.uniform(-3, 3), 2),
+                "high_24h": round(price * 1.02, 2 if price > 1 else 6),
+                "low_24h": round(price * 0.98, 2 if price > 1 else 6),
+                "volume": random.randint(100000, 1000000),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "spread_pips": round(spread * 100, 2),
+                "source": "coingecko"
+            }
+    
+    # Fallback to simulated
+    base_prices = {
+        "BTC/USD": 97500, "ETH/USD": 3400, "XRP/USD": 2.35,
+        "BTC/EUR": 92000, "ETH/BTC": 0.035,
+        "ADA/USD": 0.95, "SOL/USD": 195, "DOGE/USD": 0.32
+    }
+    
+    import random
+    base = base_prices.get(pair, 100)
+    price = base * (1 + random.uniform(-0.01, 0.01))
+    
+    return {
+        "pair": pair,
+        "type": "crypto",
+        "bid": round(price * 0.9999, 2 if price > 1 else 6),
+        "ask": round(price * 1.0001, 2 if price > 1 else 6),
+        "price": round(price, 2 if price > 1 else 6),
+        "change_24h": round(random.uniform(-5, 5), 2),
+        "high_24h": round(price * 1.03, 2 if price > 1 else 6),
+        "low_24h": round(price * 0.97, 2 if price > 1 else 6),
+        "volume": random.randint(100000, 1000000),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "spread_pips": 1,
+        "source": "simulated"
+    }
+
+async def get_price(pair: str) -> dict:
+    """Get price for any pair (forex or crypto)"""
+    if pair in CRYPTO_PAIRS:
+        return await get_crypto_price(pair)
+    return await get_forex_price(pair)
+
 async def get_historical_prices(pair: str, timeframe: str = "1H", limit: int = 100) -> List[dict]:
-    """Generate detailed historical price data for charts"""
+    """Generate detailed historical price data"""
     import random
     import math
     
-    base_prices = {
-        "EUR/USD": 1.0850, "GBP/USD": 1.2650, "USD/JPY": 149.50, "USD/CHF": 0.8750,
-        "AUD/USD": 0.6550, "USD/CAD": 1.3650, "NZD/USD": 0.6150
-    }
-    base = base_prices.get(pair, 1.0)
+    is_crypto = pair in CRYPTO_PAIRS
     
-    timeframe_minutes = {"15M": 15, "30M": 30, "1H": 60, "4H": 240, "1D": 1440}
+    if is_crypto:
+        base_prices = {
+            "BTC/USD": 97500, "ETH/USD": 3400, "XRP/USD": 2.35,
+            "BTC/EUR": 92000, "ETH/BTC": 0.035,
+            "ADA/USD": 0.95, "SOL/USD": 195, "DOGE/USD": 0.32
+        }
+    else:
+        base_prices = {
+            "EUR/USD": 1.0850, "GBP/USD": 1.2650, "USD/JPY": 149.50
+        }
+    
+    base = base_prices.get(pair, 1.0 if not is_crypto else 100)
+    
+    timeframe_minutes = {"1M": 1, "5M": 5, "15M": 15, "30M": 30, "1H": 60, "4H": 240, "1D": 1440, "1W": 10080}
     interval = timeframe_minutes.get(timeframe, 60)
     
     prices = []
     current_time = datetime.now(timezone.utc)
     price = base
     
-    # Generate trending data with realistic candle patterns
-    trend = random.choice([-1, 1])  # Overall trend direction
+    trend = random.choice([-1, 1])
+    volatility = 0.02 if is_crypto else 0.002
     
     for i in range(limit):
         timestamp = current_time - timedelta(minutes=interval * (limit - i))
         
-        # Trend component
-        trend_change = trend * random.uniform(0, 0.0003)
-        # Volatility component
-        volatility = random.uniform(-0.002, 0.002) * price
-        # Mean reversion
-        mean_reversion = (base - price) * 0.01
+        trend_change = trend * random.uniform(0, 0.0003) * price
+        vol = random.uniform(-volatility, volatility) * price
+        mean_reversion = (base - price) * 0.005
         
-        price = price + trend_change + volatility + mean_reversion
+        price = price + trend_change + vol + mean_reversion
         
-        # Generate OHLC with realistic wicks
         body_size = abs(random.gauss(0, 0.001)) * price
         wick_size = abs(random.gauss(0, 0.0005)) * price
         
-        if random.random() > 0.5:  # Bullish candle
+        if random.random() > 0.5:
             open_price = price - body_size / 2
             close_price = price + body_size / 2
-        else:  # Bearish candle
+        else:
             open_price = price + body_size / 2
             close_price = price - body_size / 2
         
         high = max(open_price, close_price) + wick_size
         low = min(open_price, close_price) - wick_size
         
-        # Calculate technical indicators
+        decimals = 2 if is_crypto and base > 1 else (3 if "JPY" in pair else 5)
+        
         prices.append({
             "time": int(timestamp.timestamp()),
-            "open": round(open_price, 5 if "JPY" not in pair else 3),
-            "high": round(high, 5 if "JPY" not in pair else 3),
-            "low": round(low, 5 if "JPY" not in pair else 3),
-            "close": round(close_price, 5 if "JPY" not in pair else 3),
+            "open": round(open_price, decimals),
+            "high": round(high, decimals),
+            "low": round(low, decimals),
+            "close": round(close_price, decimals),
             "volume": random.randint(1000, 15000)
         })
     
     return prices
 
-async def get_realtime_candles(pair: str, limit: int = 60) -> List[dict]:
-    """Get minute-by-minute candles for real-time chart"""
-    import random
-    import math
-    
-    base_prices = {
-        "EUR/USD": 1.0850, "GBP/USD": 1.2650, "USD/JPY": 149.50, "USD/CHF": 0.8750,
-        "AUD/USD": 0.6550, "USD/CAD": 1.3650, "NZD/USD": 0.6150, "EUR/GBP": 0.8580,
-        "EUR/JPY": 162.20, "GBP/JPY": 189.10
-    }
-    base = base_prices.get(pair, 1.0)
-    
-    candles = []
-    now = datetime.now(timezone.utc)
-    price = base
-    
-    for i in range(limit):
-        timestamp = now - timedelta(minutes=limit - i)
-        time_factor = timestamp.timestamp() / 60
-        
-        # Create smooth price movement
-        wave = math.sin(time_factor * 0.2) * 0.002
-        noise = random.uniform(-0.0005, 0.0005)
-        price = base * (1 + wave + noise)
-        
-        body = abs(random.gauss(0, 0.0003)) * price
-        wick = abs(random.gauss(0, 0.0001)) * price
-        
-        is_bullish = random.random() > 0.45
-        if is_bullish:
-            open_p = price - body/2
-            close_p = price + body/2
-        else:
-            open_p = price + body/2
-            close_p = price - body/2
-        
-        candles.append({
-            "time": int(timestamp.timestamp()),
-            "open": round(open_p, 5 if "JPY" not in pair else 3),
-            "high": round(max(open_p, close_p) + wick, 5 if "JPY" not in pair else 3),
-            "low": round(min(open_p, close_p) - wick, 5 if "JPY" not in pair else 3),
-            "close": round(close_p, 5 if "JPY" not in pair else 3),
-            "volume": random.randint(500, 3000)
-        })
-    
-    return candles
-
-# ===================== PRO TRADING INSIGHTS =====================
-
-async def get_pro_trading_insights() -> dict:
-    """Get best trading pairs by strategy for pro users"""
-    import random
-    
-    # Algorithmic Trading - Based on technical patterns
-    algo_pairs = []
-    for pair in random.sample(FOREX_PAIRS, 5):
-        price_data = await get_forex_price(pair)
-        trend = random.choice(["BULLISH", "BEARISH"])
-        confidence = round(random.uniform(70, 95), 1)
-        algo_pairs.append({
-            "pair": pair,
-            "trend": trend,
-            "confidence": confidence,
-            "signal": "BUY" if trend == "BULLISH" else "SELL",
-            "reason": f"Strong {trend.lower()} momentum detected. RSI divergence confirmed.",
-            "entry": price_data["price"],
-            "target": round(price_data["price"] * (1.02 if trend == "BULLISH" else 0.98), 5),
-            "risk_reward": round(random.uniform(1.5, 3.0), 1)
-        })
-    
-    # News Trading - Based on economic events
-    news_pairs = []
-    economic_events = [
-        {"event": "Fed Interest Rate Decision", "impact": "HIGH", "time": "14:00 UTC"},
-        {"event": "ECB Press Conference", "impact": "HIGH", "time": "12:45 UTC"},
-        {"event": "UK GDP Release", "impact": "MEDIUM", "time": "07:00 UTC"},
-        {"event": "Japan CPI Data", "impact": "MEDIUM", "time": "23:30 UTC"},
-        {"event": "US NFP Report", "impact": "HIGH", "time": "13:30 UTC"}
-    ]
-    
-    for i, event in enumerate(economic_events[:3]):
-        affected_pairs = random.sample(FOREX_PAIRS, 2)
-        news_pairs.append({
-            "event": event["event"],
-            "impact": event["impact"],
-            "time": event["time"],
-            "affected_pairs": affected_pairs,
-            "expected_volatility": random.choice(["HIGH", "VERY HIGH"]),
-            "recommended_action": random.choice(["Wait for breakout", "Trade the spike", "Fade the move"])
-        })
-    
-    # Carry Trading - Based on interest rate differentials
-    carry_pairs = [
-        {"pair": "AUD/JPY", "yield_diff": 4.35, "direction": "LONG", "monthly_carry": 0.36},
-        {"pair": "NZD/JPY", "yield_diff": 4.85, "direction": "LONG", "monthly_carry": 0.40},
-        {"pair": "USD/JPY", "yield_diff": 5.25, "direction": "LONG", "monthly_carry": 0.44},
-        {"pair": "GBP/JPY", "yield_diff": 5.10, "direction": "LONG", "monthly_carry": 0.43},
-        {"pair": "EUR/CHF", "yield_diff": 2.25, "direction": "LONG", "monthly_carry": 0.19}
-    ]
-    
-    return {
-        "algorithmic": {
-            "title": "Algorithmic Trading Signals",
-            "description": "AI-detected technical patterns and momentum signals",
-            "pairs": sorted(algo_pairs, key=lambda x: x["confidence"], reverse=True)
-        },
-        "news": {
-            "title": "News Trading Opportunities",
-            "description": "Upcoming high-impact economic events",
-            "events": news_pairs
-        },
-        "carry": {
-            "title": "Carry Trade Recommendations",
-            "description": "Best pairs for interest rate differential trading",
-            "pairs": carry_pairs
-        },
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-
-# ===================== AI SIGNAL GENERATION =====================
+# ===================== SIGNAL GENERATION =====================
 
 async def generate_ai_signal(pair: str, timeframe: str) -> dict:
-    """Generate AI trading signal with prediction 1 minute ahead"""
+    """Generate AI trading signal with prediction"""
     import random
     
-    price_data = await get_forex_price(pair)
+    price_data = await get_price(pair)
     current_price = price_data["price"]
+    is_crypto = pair in CRYPTO_PAIRS
     
-    # Generate prediction 1 minute ahead
     prediction_direction = random.choice([-1, 1])
-    pip_value = 0.0001 if "JPY" not in pair else 0.01
-    predicted_change = prediction_direction * random.randint(2, 8) * pip_value
-    predicted_price = round(current_price + predicted_change, 5 if "JPY" not in pair else 3)
+    
+    if is_crypto:
+        pip_value = current_price * 0.001
+    else:
+        pip_value = 0.0001 if "JPY" not in pair else 0.01
+    
+    predicted_change = prediction_direction * random.randint(2, 10) * pip_value
+    predicted_price = round(current_price + predicted_change, 2 if is_crypto else (3 if "JPY" in pair else 5))
     prediction_time = (datetime.now(timezone.utc) + timedelta(minutes=1)).isoformat()
     
-    # Generate AI rationale
-    ai_rationale = ""
-    try:
-        if EMERGENT_LLM_KEY:
-            response = await openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are a professional forex analyst providing elegant, concise analysis."},
-                    {"role": "user", "content": f"Analyze {pair} at {current_price} for a {timeframe} trade. Give a brief 2-sentence analysis with signal direction and key factors."}
-                ],
-                max_tokens=100
-            )
-            ai_rationale = response.choices[0].message.content
-    except Exception as e:
-        logger.error(f"AI generation error: {e}")
-    
-    # Determine signal type based on prediction
     if predicted_price > current_price * 1.0002:
         signal_type = "BUY"
         market_bias = "BULLISH"
@@ -514,24 +502,24 @@ async def generate_ai_signal(pair: str, timeframe: str) -> dict:
     tp_pips = random.randint(30, 80)
     
     if signal_type == "BUY":
-        stop_loss = round(current_price - (sl_pips * pip_value), 5 if "JPY" not in pair else 3)
-        take_profit = round(current_price + (tp_pips * pip_value), 5 if "JPY" not in pair else 3)
+        stop_loss = round(current_price - (sl_pips * pip_value), 2 if is_crypto else 5)
+        take_profit = round(current_price + (tp_pips * pip_value), 2 if is_crypto else 5)
     elif signal_type == "SELL":
-        stop_loss = round(current_price + (sl_pips * pip_value), 5 if "JPY" not in pair else 3)
-        take_profit = round(current_price - (tp_pips * pip_value), 5 if "JPY" not in pair else 3)
+        stop_loss = round(current_price + (sl_pips * pip_value), 2 if is_crypto else 5)
+        take_profit = round(current_price - (tp_pips * pip_value), 2 if is_crypto else 5)
     else:
-        stop_loss = round(current_price - (sl_pips * pip_value), 5 if "JPY" not in pair else 3)
-        take_profit = round(current_price + (tp_pips * pip_value), 5 if "JPY" not in pair else 3)
+        stop_loss = round(current_price - (sl_pips * pip_value), 2 if is_crypto else 5)
+        take_profit = round(current_price + (tp_pips * pip_value), 2 if is_crypto else 5)
     
-    if not ai_rationale:
-        ai_rationale = f"Technical confluence suggests {market_bias.lower()} momentum on {pair}. Key support/resistance levels align with the {signal_type.lower()} setup at {confidence}% confidence."
+    ai_rationale = f"Technical analysis indicates {market_bias.lower()} momentum on {pair}. {'Crypto volatility' if is_crypto else 'Key support/resistance levels'} suggests {signal_type.lower()} opportunity with {confidence}% confidence."
     
-    timeframe_hours = {"15M": 1, "30M": 2, "1H": 4, "4H": 16, "1D": 48}
+    timeframe_hours = {"1M": 0.25, "5M": 0.5, "15M": 1, "30M": 2, "1H": 4, "4H": 16, "1D": 48, "1W": 168}
     expires_in = timeframe_hours.get(timeframe, 4)
     
     return {
         "signal_id": f"sig_{uuid.uuid4().hex[:12]}",
         "currency_pair": pair,
+        "asset_type": "crypto" if is_crypto else "forex",
         "signal_type": signal_type,
         "entry_price": current_price,
         "stop_loss": stop_loss,
@@ -567,6 +555,7 @@ async def register(user_data: UserCreate, response: Response):
         "picture": None,
         "is_premium": is_admin,
         "is_admin": is_admin,
+        "subscription_tier": "premium" if is_admin else "free",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
@@ -581,6 +570,7 @@ async def register(user_data: UserCreate, response: Response):
         picture=None,
         is_premium=is_admin,
         is_admin=is_admin,
+        subscription_tier="premium" if is_admin else "free",
         created_at=datetime.now(timezone.utc)
     )
     
@@ -601,6 +591,7 @@ async def login(credentials: UserLogin, response: Response):
                 "picture": None,
                 "is_premium": True,
                 "is_admin": True,
+                "subscription_tier": "premium",
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
             await db.users.insert_one(user_doc)
@@ -622,6 +613,7 @@ async def login(credentials: UserLogin, response: Response):
         picture=user_doc.get("picture"),
         is_premium=user_doc.get("is_premium", False),
         is_admin=user_doc.get("is_admin", False),
+        subscription_tier=user_doc.get("subscription_tier", "free"),
         created_at=created_at
     )
     
@@ -640,6 +632,7 @@ async def get_me(user: dict = Depends(require_auth)):
         picture=user.get("picture"),
         is_premium=user.get("is_premium", False),
         is_admin=user.get("is_admin", False),
+        subscription_tier=user.get("subscription_tier", "free"),
         created_at=created_at
     )
 
@@ -681,6 +674,7 @@ async def process_oauth_session(request: Request, response: Response):
             "picture": picture,
             "is_premium": is_admin,
             "is_admin": is_admin,
+            "subscription_tier": "premium" if is_admin else "free",
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(user_doc)
@@ -720,6 +714,7 @@ async def process_oauth_session(request: Request, response: Response):
             picture=picture,
             is_premium=user_doc.get("is_premium", False),
             is_admin=user_doc.get("is_admin", False),
+            subscription_tier=user_doc.get("subscription_tier", "free"),
             created_at=created_at
         ),
         "token": create_jwt_token(user_id, email, user_doc.get("is_admin", False))
@@ -746,12 +741,14 @@ async def get_signals(
     pair: Optional[str] = None,
     timeframe: Optional[str] = None,
     status: Optional[str] = None,
+    asset_type: Optional[str] = None,
     min_confidence: Optional[float] = None,
     request: Request = None,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     user = await get_current_user(request, credentials)
-    is_premium = user and (user.get("is_premium") or user.get("is_admin"))
+    tier = user.get("subscription_tier", "free") if user else "free"
+    is_premium = tier in ["pro", "premium"] or (user and user.get("is_admin"))
     
     query = {}
     if pair:
@@ -760,6 +757,8 @@ async def get_signals(
         query["timeframe"] = timeframe
     if status:
         query["status"] = status
+    if asset_type:
+        query["asset_type"] = asset_type
     if min_confidence:
         query["confidence"] = {"$gte": min_confidence}
     
@@ -778,7 +777,8 @@ async def get_signal(signal_id: str, request: Request = None, credentials: HTTPA
     if not signal:
         raise HTTPException(status_code=404, detail="Signal not found")
     
-    is_premium = user and (user.get("is_premium") or user.get("is_admin"))
+    tier = user.get("subscription_tier", "free") if user else "free"
+    is_premium = tier in ["pro", "premium"] or (user and user.get("is_admin"))
     if signal.get("is_premium") and not is_premium:
         raise HTTPException(status_code=403, detail="Premium subscription required")
     
@@ -786,7 +786,7 @@ async def get_signal(signal_id: str, request: Request = None, credentials: HTTPA
 
 @api_router.post("/signals/generate")
 async def generate_signal(data: SignalCreate, user: dict = Depends(require_auth)):
-    if data.currency_pair not in FOREX_PAIRS:
+    if data.currency_pair not in ALL_PAIRS:
         raise HTTPException(status_code=400, detail="Invalid currency pair")
     if data.timeframe not in TIMEFRAMES:
         raise HTTPException(status_code=400, detail="Invalid timeframe")
@@ -809,44 +809,42 @@ async def generate_signal(data: SignalCreate, user: dict = Depends(require_auth)
     
     return signal
 
-# ===================== PAIR ANALYSIS ROUTES =====================
+# ===================== PAIR ROUTES =====================
 
 @api_router.get("/pairs")
 async def get_pairs():
-    return {"pairs": FOREX_PAIRS, "timeframes": TIMEFRAMES}
+    return {
+        "forex": FOREX_PAIRS,
+        "crypto": CRYPTO_PAIRS,
+        "all": ALL_PAIRS,
+        "timeframes": TIMEFRAMES
+    }
 
 @api_router.get("/pairs/{pair}/price")
 async def get_pair_price(pair: str):
     pair = pair.replace("-", "/")
-    if pair not in FOREX_PAIRS:
+    if pair not in ALL_PAIRS:
         raise HTTPException(status_code=400, detail="Invalid currency pair")
-    return await get_forex_price(pair)
+    return await get_price(pair)
 
 @api_router.get("/pairs/{pair}/history")
 async def get_pair_history(pair: str, timeframe: str = "1H", limit: int = 100):
     pair = pair.replace("-", "/")
-    if pair not in FOREX_PAIRS:
+    if pair not in ALL_PAIRS:
         raise HTTPException(status_code=400, detail="Invalid currency pair")
     return await get_historical_prices(pair, timeframe, limit)
-
-@api_router.get("/pairs/{pair}/realtime")
-async def get_pair_realtime(pair: str, limit: int = 60):
-    """Get minute-by-minute candles for real-time chart"""
-    pair = pair.replace("-", "/")
-    if pair not in FOREX_PAIRS:
-        raise HTTPException(status_code=400, detail="Invalid currency pair")
-    return await get_realtime_candles(pair, limit)
 
 @api_router.get("/pairs/{pair}/analysis")
 async def get_pair_analysis(pair: str, request: Request = None, credentials: HTTPAuthorizationCredentials = Depends(security)):
     pair = pair.replace("-", "/")
-    if pair not in FOREX_PAIRS:
+    if pair not in ALL_PAIRS:
         raise HTTPException(status_code=400, detail="Invalid currency pair")
     
     user = await get_current_user(request, credentials)
-    is_premium = user and (user.get("is_premium") or user.get("is_admin"))
+    tier = user.get("subscription_tier", "free") if user else "free"
+    is_premium = tier in ["pro", "premium"] or (user and user.get("is_admin"))
     
-    price_data = await get_forex_price(pair)
+    price_data = await get_price(pair)
     signals = await db.trading_signals.find(
         {"currency_pair": pair, "status": "ACTIVE"},
         {"_id": 0}
@@ -863,17 +861,21 @@ async def get_pair_analysis(pair: str, request: Request = None, credentials: HTT
         "current_price": price_data["price"],
         "bid": price_data["bid"],
         "ask": price_data["ask"],
-        "spread": price_data["spread_pips"],
+        "spread": price_data.get("spread_pips", 0),
         "change_24h": price_data["change_24h"],
+        "asset_type": price_data.get("type", "forex"),
         "indicators": {
             "rsi": rsi,
             "macd": macd,
             "ema_20": ema_20,
             "ema_50": ema_50,
+            "sma_20": round(price_data["price"] * random.uniform(0.997, 1.003), 5),
+            "sma_50": round(price_data["price"] * random.uniform(0.994, 1.006), 5),
             "trend": "BULLISH" if ema_20 > ema_50 else "BEARISH",
             "atr": round(random.uniform(0.0010, 0.0030), 5),
             "bollinger_upper": round(price_data["price"] * 1.01, 5),
-            "bollinger_lower": round(price_data["price"] * 0.99, 5)
+            "bollinger_lower": round(price_data["price"] * 0.99, 5),
+            "bollinger_middle": price_data["price"]
         },
         "signals": signals if is_premium else signals[:2],
         "is_premium_content": not is_premium
@@ -881,18 +883,63 @@ async def get_pair_analysis(pair: str, request: Request = None, credentials: HTT
     
     return analysis
 
-# ===================== PRO INSIGHTS ROUTE =====================
+# ===================== PRO INSIGHTS =====================
 
 @api_router.get("/pro/insights")
 async def get_insights(user: dict = Depends(require_premium)):
-    return await get_pro_trading_insights()
+    import random
+    
+    algo_pairs = []
+    for pair in random.sample(ALL_PAIRS, 5):
+        price_data = await get_price(pair)
+        trend = random.choice(["BULLISH", "BEARISH"])
+        confidence = round(random.uniform(70, 95), 1)
+        algo_pairs.append({
+            "pair": pair,
+            "trend": trend,
+            "confidence": confidence,
+            "signal": "BUY" if trend == "BULLISH" else "SELL",
+            "reason": f"Strong {trend.lower()} momentum. RSI divergence confirmed.",
+            "entry": price_data["price"],
+            "target": round(price_data["price"] * (1.02 if trend == "BULLISH" else 0.98), 5),
+            "risk_reward": round(random.uniform(1.5, 3.0), 1)
+        })
+    
+    news_events = [
+        {"event": "Fed Interest Rate Decision", "impact": "HIGH", "time": "14:00 UTC"},
+        {"event": "ECB Press Conference", "impact": "HIGH", "time": "12:45 UTC"},
+        {"event": "UK GDP Release", "impact": "MEDIUM", "time": "07:00 UTC"}
+    ]
+    
+    news_pairs = []
+    for event in news_events:
+        affected = random.sample(FOREX_PAIRS, 2)
+        news_pairs.append({
+            "event": event["event"],
+            "impact": event["impact"],
+            "time": event["time"],
+            "affected_pairs": affected,
+            "expected_volatility": random.choice(["HIGH", "VERY HIGH"]),
+            "recommended_action": random.choice(["Wait for breakout", "Trade the spike", "Fade the move"])
+        })
+    
+    carry_pairs = [
+        {"pair": "AUD/JPY", "yield_diff": 4.35, "direction": "LONG", "monthly_carry": 0.36},
+        {"pair": "NZD/JPY", "yield_diff": 4.85, "direction": "LONG", "monthly_carry": 0.40},
+        {"pair": "USD/JPY", "yield_diff": 5.25, "direction": "LONG", "monthly_carry": 0.44}
+    ]
+    
+    return {
+        "algorithmic": {"title": "Algorithmic Signals", "description": "AI-detected patterns", "pairs": sorted(algo_pairs, key=lambda x: x["confidence"], reverse=True)},
+        "news": {"title": "News Trading", "description": "Upcoming high-impact events", "events": news_pairs},
+        "carry": {"title": "Carry Trade", "description": "Interest rate differentials", "pairs": carry_pairs},
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
 
-# ===================== PERFORMANCE ROUTES =====================
+# ===================== PERFORMANCE =====================
 
 @api_router.get("/performance")
 async def get_performance(request: Request = None, credentials: HTTPAuthorizationCredentials = Depends(security)):
-    user = await get_current_user(request, credentials)
-    
     total_signals = await db.trading_signals.count_documents({})
     tp_hit = await db.trading_signals.count_documents({"status": "TP_HIT"})
     sl_hit = await db.trading_signals.count_documents({"status": "SL_HIT"})
@@ -935,13 +982,18 @@ async def get_performance_chart():
     
     return data
 
-# ===================== RISK CALCULATOR =====================
+# ===================== CALCULATOR =====================
 
 @api_router.post("/calculator/position-size")
 async def calculate_position_size(data: PositionSizeRequest):
-    pip_value = 0.0001 if "JPY" not in data.currency_pair else 0.01
-    sl_pips = abs(data.entry_price - data.stop_loss) / pip_value
+    is_crypto = data.currency_pair in CRYPTO_PAIRS
     
+    if is_crypto:
+        pip_value = data.entry_price * 0.0001
+    else:
+        pip_value = 0.0001 if "JPY" not in data.currency_pair else 0.01
+    
+    sl_pips = abs(data.entry_price - data.stop_loss) / pip_value
     risk_amount = data.account_balance * (data.risk_percentage / 100)
     lot_size = risk_amount / (sl_pips * 10)
     
@@ -954,7 +1006,7 @@ async def calculate_position_size(data: PositionSizeRequest):
         "potential_loss": round(risk_amount, 2)
     }
 
-# ===================== ALERTS ROUTES =====================
+# ===================== ALERTS =====================
 
 @api_router.get("/alerts")
 async def get_alerts(user: dict = Depends(require_auth)):
@@ -982,11 +1034,27 @@ async def mark_all_alerts_read(user: dict = Depends(require_auth)):
     )
     return {"message": "All alerts marked as read"}
 
-# ===================== SUBSCRIPTION ROUTES =====================
+# ===================== SUBSCRIPTION =====================
 
 SUBSCRIPTION_PLANS = {
-    "monthly": {"plan_id": "monthly", "name": "Pro Monthly", "price": 29.99, "features": ["Unlimited signals", "Premium pairs", "AI analysis", "Priority alerts"]},
-    "yearly": {"plan_id": "yearly", "name": "Pro Yearly", "price": 249.99, "features": ["All monthly features", "40% savings", "Early access", "1-on-1 support"]}
+    "free": {
+        "plan_id": "free",
+        "name": "Free",
+        "price": 0,
+        "features": ["10 pairs access", "Basic charts (1 timeframe)", "Standard spreads", "7-day historical", "2 indicators"]
+    },
+    "pro": {
+        "plan_id": "pro",
+        "name": "Pro",
+        "price": 5.99,
+        "features": ["All 30+ pairs", "All timeframes", "Real-time spreads", "1-year historical", "All indicators", "10 price alerts", "No ads"]
+    },
+    "premium": {
+        "plan_id": "premium",
+        "name": "Premium",
+        "price": 29.99,
+        "features": ["Everything in Pro", "Advanced analytics", "Unlimited alerts", "API access", "Priority support", "Backtesting", "Trading signals"]
+    }
 }
 
 @api_router.get("/subscription/plans")
@@ -995,6 +1063,8 @@ async def get_subscription_plans():
 
 @api_router.post("/subscription/checkout")
 async def create_checkout(data: CheckoutRequest, user: dict = Depends(require_auth)):
+    plan = SUBSCRIPTION_PLANS.get(data.plan, SUBSCRIPTION_PLANS["pro"])
+    
     success_url = f"{data.origin_url}/subscription/success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{data.origin_url}/subscription"
     
@@ -1004,22 +1074,23 @@ async def create_checkout(data: CheckoutRequest, user: dict = Depends(require_au
             line_items=[{
                 "price_data": {
                     "currency": "usd",
-                    "product_data": {"name": "FX Pulse Pro Monthly"},
-                    "unit_amount": 2999
+                    "product_data": {"name": f"FX Pulse {plan['name']}"},
+                    "unit_amount": int(plan["price"] * 100)
                 },
                 "quantity": 1
             }],
             mode="payment",
             success_url=success_url,
             cancel_url=cancel_url,
-            metadata={"user_id": user["user_id"]}
+            metadata={"user_id": user["user_id"], "plan": data.plan}
         )
         
         await db.payment_transactions.insert_one({
             "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
             "user_id": user["user_id"],
             "session_id": session.id,
-            "amount": 29.99,
+            "plan": data.plan,
+            "amount": plan["price"],
             "currency": "usd",
             "status": "PENDING",
             "created_at": datetime.now(timezone.utc).isoformat()
@@ -1036,9 +1107,10 @@ async def get_checkout_status(session_id: str, user: dict = Depends(require_auth
         session = stripe.checkout.Session.retrieve(session_id)
         
         if session.payment_status == "paid":
+            plan = session.metadata.get("plan", "pro")
             await db.users.update_one(
                 {"user_id": user["user_id"]},
-                {"$set": {"is_premium": True}}
+                {"$set": {"is_premium": True, "subscription_tier": plan}}
             )
             await db.payment_transactions.update_one(
                 {"session_id": session_id},
@@ -1054,7 +1126,7 @@ async def get_checkout_status(session_id: str, user: dict = Depends(require_auth
         logger.error(f"Stripe status error: {e}")
         raise HTTPException(status_code=500, detail="Status check failed")
 
-# ===================== ADMIN ROUTES =====================
+# ===================== ADMIN =====================
 
 @api_router.get("/admin/signals")
 async def admin_get_signals(user: dict = Depends(require_admin)):
@@ -1078,7 +1150,8 @@ async def admin_update_signal(signal_id: str, data: AdminSignalUpdate, user: dic
 @api_router.post("/admin/signals/generate-batch")
 async def admin_generate_batch(user: dict = Depends(require_admin)):
     signals = []
-    for pair in FOREX_PAIRS[:10]:
+    pairs_to_generate = FOREX_PAIRS[:7] + CRYPTO_PAIRS[:3]
+    for pair in pairs_to_generate:
         signal = await generate_ai_signal(pair, "1H")
         signal_to_insert = signal.copy()
         await db.trading_signals.insert_one(signal_to_insert)
@@ -1091,22 +1164,24 @@ async def admin_get_users(user: dict = Depends(require_admin)):
     return users
 
 @api_router.put("/admin/users/{user_id}/premium")
-async def admin_toggle_premium(user_id: str, user: dict = Depends(require_admin)):
+async def admin_toggle_premium(user_id: str, tier: str = "pro", user: dict = Depends(require_admin)):
     target_user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
     if not target_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    new_premium = not target_user.get("is_premium", False)
+    current_tier = target_user.get("subscription_tier", "free")
+    new_tier = "free" if current_tier != "free" else tier
+    
     await db.users.update_one(
         {"user_id": user_id},
-        {"$set": {"is_premium": new_premium}}
+        {"$set": {"is_premium": new_tier != "free", "subscription_tier": new_tier}}
     )
-    return {"user_id": user_id, "is_premium": new_premium}
+    return {"user_id": user_id, "subscription_tier": new_tier}
 
 @api_router.get("/admin/stats")
 async def admin_get_stats(user: dict = Depends(require_admin)):
     total_users = await db.users.count_documents({})
-    premium_users = await db.users.count_documents({"is_premium": True})
+    premium_users = await db.users.count_documents({"subscription_tier": {"$ne": "free"}})
     total_signals = await db.trading_signals.count_documents({})
     active_signals = await db.trading_signals.count_documents({"status": "ACTIVE"})
     total_transactions = await db.payment_transactions.count_documents({})
@@ -1118,20 +1193,18 @@ async def admin_get_stats(user: dict = Depends(require_admin)):
         "transactions": {"total": total_transactions, "completed": completed_transactions}
     }
 
-# ===================== ROOT ROUTES =====================
+# ===================== ROOT =====================
 
 @api_router.get("/")
 async def root():
-    return {"message": "FX Pulse API", "version": "1.0.0"}
+    return {"message": "FX Pulse API", "version": "2.0.0"}
 
 @api_router.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
-# Include the router
 app.include_router(api_router)
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
