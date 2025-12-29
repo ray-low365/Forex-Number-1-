@@ -1,154 +1,135 @@
 {
-  "project_name": "FX Pulse",
-  "design_philosophy": {
-    "identity": "The Gilded Vault",
-    "core_values": [
-      "Luxurious but Friendly",
-      "Precision meets Art",
-      "Warmth over Aggression",
-      "Clarity in Complexity"
-    ],
-    "vibe": "Think 'High-End Swiss Watch' meets 'Modern Fintech'. Dark, mysterious, but illuminated by warm gold light. Not the aggressive red/green of Wall Street, but the sophisticated amber/teal of a private family office."
+  "identity": {
+    "name": "FX Pulse Gen Z Transformation",
+    "persona": "E1: The Anti-AI Designer",
+    "tone": "Energetic, Disruptive, Premium, Trustworthy",
+    "target_audience": "Gen Z Traders (18-28)"
   },
   "typography": {
-    "font_family": {
-      "heading": "Playfair Display, serif",
+    "font_families": {
+      "neon_heading": "Unbounded, sans-serif",
+      "luxury_heading": "Playfair Display, serif",
       "body": "Manrope, sans-serif",
       "mono": "JetBrains Mono, monospace"
     },
-    "import_url": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap",
+    "import_url": "https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap",
     "usage_rules": {
-      "headings": "Use Playfair Display for all H1-H3. It adds the 'Luxury' touch. Keep weights lighter (400/600) rather than bold.",
-      "body": "Use Manrope for all UI text. It is geometric but friendly.",
-      "numbers": "ALWAYS use JetBrains Mono for prices, percentages, and tabular data."
+      "neon_mode": {
+        "h1": "font-unbounded font-extrabold tracking-tighter uppercase",
+        "h2": "font-unbounded font-bold tracking-tight",
+        "body": "font-body tracking-wide"
+      },
+      "luxury_mode": {
+        "h1": "font-heading font-semibold tracking-normal italic",
+        "h2": "font-heading font-medium",
+        "body": "font-body tracking-normal"
+      }
     }
   },
   "colors": {
-    "palette": {
-      "background": {
-        "default": "#0F1115",
-        "paper": "#161920",
-        "subtle": "#1C2029"
+    "themes": {
+      "default_neon": {
+        "background": "#050505",
+        "foreground": "#F0F0F0",
+        "primary": "#00FFF0",
+        "secondary": "#FF006E",
+        "accent": "#8338EC",
+        "muted": "#1A1A1A",
+        "border": "rgba(0, 255, 240, 0.2)",
+        "glass_bg": "rgba(5, 5, 5, 0.6)",
+        "glass_border": "rgba(0, 255, 240, 0.15)"
       },
-      "primary": {
-        "DEFAULT": "#D4AF37",
-        "hover": "#C5A028",
-        "light": "#F3E5AB",
-        "dark": "#AA8C2C"
-      },
-      "secondary": {
-        "DEFAULT": "#1B202D",
-        "foreground": "#E2E8F0"
-      },
-      "accent": {
-        "gold": "#D4AF37",
-        "amber": "#FFBF00",
-        "bronze": "#CD7F32"
-      },
-      "semantic": {
-        "success": "#2E8B57",
-        "danger": "#CD5C5C",
-        "neutral": "#64748B",
-        "info": "#3B82F6"
-      },
-      "text": {
-        "primary": "#F1F5F9",
-        "secondary": "#94A3B8",
-        "muted": "#64748B",
-        "gold": "#D4AF37"
+      "luxury_gold": {
+        "background": "#0F1115",
+        "foreground": "#F1F5F9",
+        "primary": "#D4AF37",
+        "secondary": "#1E293B",
+        "accent": "#AA8C2C",
+        "muted": "#161920",
+        "border": "rgba(212, 175, 55, 0.2)",
+        "glass_bg": "rgba(22, 25, 32, 0.7)",
+        "glass_border": "rgba(212, 175, 55, 0.1)"
       }
     },
     "gradients": {
-      "gold_glow": "linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%)",
-      "dark_glass": "linear-gradient(180deg, rgba(22, 25, 32, 0.7) 0%, rgba(15, 17, 21, 0.9) 100%)",
-      "luxury_mesh": "radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.15) 0%, rgba(15, 17, 21, 0) 70%)"
+      "neon_main": "linear-gradient(135deg, #00FFF0 0%, #8338EC 100%)",
+      "neon_text": "linear-gradient(to right, #00FFF0, #FF006E)",
+      "luxury_main": "linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%)",
+      "luxury_text": "linear-gradient(to right, #D4AF37, #F3E5AB)"
     }
   },
   "visual_enhancers": {
     "glassmorphism": {
-      "default": "backdrop-blur-xl bg-[#161920]/80 border border-white/5",
-      "heavy": "backdrop-blur-2xl bg-[#0F1115]/90 border border-[#D4AF37]/20",
-      "hover": "hover:bg-[#1C2029]/80 hover:border-[#D4AF37]/40 transition-all duration-300"
+      "neon": "backdrop-blur-xl bg-black/40 border border-cyan-500/20 shadow-[0_0_30px_-10px_rgba(0,255,240,0.15)]",
+      "luxury": "backdrop-blur-md bg-[#161920]/80 border border-[#D4AF37]/20 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.4)]"
     },
-    "shadows": {
-      "card": "0 8px 32px -4px rgba(0, 0, 0, 0.4)",
-      "glow": "0 0 20px -5px rgba(212, 175, 55, 0.3)",
-      "text_glow": "0 0 10px rgba(212, 175, 55, 0.5)"
+    "glows": {
+      "neon_strong": "box-shadow: 0 0 20px rgba(0, 255, 240, 0.5)",
+      "neon_subtle": "box-shadow: 0 0 10px rgba(131, 56, 236, 0.3)",
+      "gold_elegant": "box-shadow: 0 0 15px rgba(212, 175, 55, 0.2)"
     },
-    "borders": {
-      "subtle": "1px solid rgba(255, 255, 255, 0.05)",
-      "gold": "1px solid rgba(212, 175, 55, 0.3)",
-      "radius": "rounded-xl"
+    "textures": {
+      "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")"
     }
   },
-  "layout_strategy": {
-    "grid_system": "Bento Grid (Asymmetrical)",
-    "spacing": "Generous. Use p-6 or p-8 for cards. Gap-6 for grids.",
-    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
-    "z_index": {
-      "toast": 50,
-      "modal": 40,
-      "dropdown": 30,
-      "sticky_nav": 20,
-      "default": 1
+  "layout_strategies": {
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-12 gap-4 p-4 md:p-6",
+    "landing_hero": "min-h-screen flex flex-col justify-center items-center relative overflow-hidden",
+    "bento_cells": {
+      "chart_main": "col-span-1 md:col-span-8 row-span-2",
+      "sidebar_list": "col-span-1 md:col-span-4 row-span-2",
+      "stat_card": "col-span-1 md:col-span-3 row-span-1"
     }
   },
   "components": {
     "buttons": {
-      "primary": "bg-gradient-to-r from-[#D4AF37] to-[#AA8C2C] text-[#0F1115] font-bold hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 rounded-full px-8 py-3",
-      "secondary": "bg-transparent border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-all duration-300 rounded-full px-8 py-3",
-      "ghost": "text-slate-400 hover:text-[#D4AF37] transition-colors"
+      "primary_neon": "bg-cyan-500 text-black font-unbounded font-bold uppercase tracking-wider hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(0,255,240,0.6)] transition-all duration-300 rounded-none skew-x-[-10deg]",
+      "primary_luxury": "bg-gradient-to-r from-[#D4AF37] to-[#AA8C2C] text-black font-heading font-semibold rounded-full hover:shadow-lg transition-all duration-300",
+      "secondary": "bg-transparent border border-current hover:bg-white/5 transition-all"
     },
     "cards": {
-      "base": "bg-[#161920]/60 backdrop-blur-md border border-white/5 rounded-xl p-6 hover:border-[#D4AF37]/30 transition-all duration-300 group relative overflow-hidden",
-      "highlight": "before:absolute before:inset-0 before:bg-gradient-to-b before:from-[#D4AF37]/5 before:to-transparent before:opacity-0 hover:before:opacity-100 transition-opacity"
+      "signal_card": "relative overflow-hidden group transition-all duration-300 hover:-translate-y-1",
+      "chart_container": "w-full h-[400px] rounded-xl overflow-hidden border border-white/5"
     },
     "inputs": {
-      "base": "bg-[#0F1115] border border-white/10 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-lg text-white placeholder:text-slate-600"
+      "style": "bg-black/20 border border-white/10 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 rounded-lg h-12 px-4 transition-all"
     }
   },
-  "charts": {
-    "library_preference": {
-      "candlestick": "lightweight-charts (Use for main price view)",
-      "line_area": "recharts (Use for sparklines and simple trends)"
-    },
-    "colors": {
-      "up": "#2E8B57",
-      "down": "#CD5C5C",
-      "line": "#D4AF37",
-      "area_fill": "url(#goldGradient)"
-    },
-    "config": {
-      "background": "transparent",
-      "grid": "rgba(255, 255, 255, 0.03)",
-      "text": "#64748B"
+  "motion": {
+    "transitions": "transition-all duration-300 ease-out",
+    "animations": {
+      "float": "animate-bounce duration-[3000ms]",
+      "pulse_glow": "animate-pulse duration-[2000ms]",
+      "slide_up": "animate-in slide-in-from-bottom-4 fade-in duration-500"
     }
   },
   "image_assets": {
     "hero_bg": {
-      "url": "https://images.pexels.com/photos/5278711/pexels-photo-5278711.jpeg",
-      "alt": "Abstract Gold Wave Texture",
-      "usage": "Background overlay with low opacity (10-20%) to add texture to the dark background."
+      "url": "https://images.unsplash.com/photo-1711662171213-4141abec218f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwzfHx5b3VuZyUyMHRyYWRlciUyMG5lb24lMjBsaWdodHMlMjBjeWJlcnB1bmt8ZW58MHx8fHwxNzY2OTkzMzg2fDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Futuristic trader with neon glasses",
+      "usage": "Landing page hero background with heavy dark overlay"
     },
-    "trader_lifestyle": {
-      "url": "https://images.pexels.com/photos/7173012/pexels-photo-7173012.jpeg",
-      "alt": "Confident Trader at Night",
-      "usage": "Landing page 'Join the Elite' section. Use with a gradient fade-out."
+    "crypto_accent": {
+      "url": "https://images.unsplash.com/photo-1642576422624-fd0df2b084d3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHwzfHwzZCUyMGdsb3NzeSUyMGJpdGNvaW4lMjBldGhlcmV1bSUyMGZsb2F0aW5nfGVufDB8fHx8MTc2Njk5MzM4OXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Floating crypto coin",
+      "usage": "Decorative element in features section"
     }
   },
   "instructions_to_main_agent": [
-    "1. UPDATE TAILWIND CONFIG: Add the new colors (obsidian, gold, etc.) and font families defined above.",
-    "2. UPDATE INDEX.CSS: Import the Google Fonts (Playfair Display, Manrope). Set the root variables to the new dark/gold palette.",
-    "3. LANDING PAGE: Build a 'Hero' section using the Abstract Gold Wave image as a subtle background. Use Playfair Display for the main headline: 'Trading, Elevated to an Art Form'.",
-    "4. DASHBOARD: Implement a 'Bento Grid' layout. The main chart (Lightweight Charts) should take 60% of the screen. Signal cards should be on the right.",
-    "5. SIGNALS: Use 'Gold' for the active/highlight state. Use muted Sea Green for Buy and muted Rose for Sell. Avoid neon colors.",
-    "6. PRO FEATURES: Create a 'Strategy Selector' using a glassmorphic tab system. Show 'Best Pairs' in a clean data table with JetBrains Mono numbers.",
-    "7. ANIMATIONS: Use 'animate-fade-in' and 'animate-slide-up' for entrance. Add a subtle 'pulse-gold' animation to the live signal indicators."
+    "1. INSTALL FONTS: Add the Google Fonts import to index.css immediately.",
+    "2. SETUP THEME ENGINE: Modify tailwind.config.js to support the new neon colors alongside the existing luxury ones. Use CSS variables in index.css for dynamic switching.",
+    "3. IMPLEMENT TOGGLE: Create a ThemeToggle component that switches a class on the HTML element (e.g., 'luxury-theme'). Default should be NO class (Neon).",
+    "4. REFRACTOR CSS: Move hardcoded colors in App.css to Tailwind utility classes or CSS variables.",
+    "5. LANDING PAGE: Build a high-energy landing page using the 'Neon' aesthetic. Use the 'Unbounded' font for big impact headers.",
+    "6. DASHBOARD: Update the dashboard to use the 'Bento' grid layout. Ensure charts use the correct colors based on the active theme (Cyan/Pink for Neon, Gold/White for Luxury).",
+    "7. ANIMATIONS: Add 'animate-in' classes to all major sections for a smooth entry.",
+    "8. DATA-TESTID: Ensure every interactive element has a data-testid attribute."
   ],
   "universal_guidelines": [
-    "Do not use gradients for text unless it is a very large headline.",
-    "Ensure all interactive elements have a hover state that involves a color shift or glow.",
-    "Use 'sonner' for all notifications (Success/Error).",
-    "Keep the UI 'breathing'. Do not clutter. Use negative space as a luxury element."
+    "Avoid gradients on dark backgrounds unless it's a specific glow effect.",
+    "Do not use 'Inter' for headings in Neon mode; use 'Unbounded'.",
+    "Ensure 60fps performance by avoiding heavy box-shadow animations on scroll.",
+    "Use 'sonner' for all toast notifications.",
+    "Always prioritize mobile responsiveness."
   ]
 }
