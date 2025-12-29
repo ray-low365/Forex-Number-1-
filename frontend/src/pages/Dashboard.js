@@ -28,9 +28,10 @@ export const Dashboard = () => {
   const fetchMarketStatus = async () => {
     try {
       const response = await axios.get(`${API}/market/status`);
-      setMarketStatus(response.data);
+      setMarketStatus(response.data || null);
     } catch (error) {
       console.error('Failed to fetch market status:', error);
+      setMarketStatus(null);
     }
   };
 
@@ -45,7 +46,7 @@ export const Dashboard = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
-      let filteredSignals = response.data;
+      let filteredSignals = Array.isArray(response.data) ? response.data : [];
       if (filters.type !== 'all') {
         filteredSignals = filteredSignals.filter(s => s.signal_type === filters.type);
       }
@@ -53,6 +54,7 @@ export const Dashboard = () => {
       setSignals(filteredSignals);
     } catch (error) {
       console.error('Failed to fetch signals:', error);
+      setSignals([]);
     } finally {
       setLoading(false);
     }
@@ -61,19 +63,27 @@ export const Dashboard = () => {
   const fetchPairs = async () => {
     try {
       const response = await axios.get(`${API}/pairs`);
-      setPairs(response.data.pairs);
-      setTimeframes(response.data.timeframes);
+      // Handle new API structure: {forex: [], crypto: [], all: [], timeframes: []}
+      const data = response.data || {};
+      const allPairs = data.all || data.pairs || [];
+      const tf = data.timeframes || [];
+      setPairs(allPairs);
+      setTimeframes(tf);
     } catch (error) {
       console.error('Failed to fetch pairs:', error);
+      setPairs([]);
+      setTimeframes([]);
     }
   };
 
   const generateSignal = async () => {
-    if (!token) return;
+    if (!token || pairs.length === 0) return;
     setGenerating(true);
     try {
       const randomPair = pairs[Math.floor(Math.random() * pairs.length)];
-      const randomTimeframe = timeframes[Math.floor(Math.random() * timeframes.length)];
+      const randomTimeframe = timeframes.length > 0 
+        ? timeframes[Math.floor(Math.random() * timeframes.length)]
+        : '1H';
       
       await axios.post(`${API}/signals/generate`, 
         { currency_pair: randomPair, timeframe: randomTimeframe },
@@ -101,10 +111,10 @@ export const Dashboard = () => {
   }, [fetchSignals]);
 
   const signalStats = {
-    buy: signals.filter(s => s.signal_type === 'BUY').length,
-    sell: signals.filter(s => s.signal_type === 'SELL').length,
-    neutral: signals.filter(s => s.signal_type === 'NEUTRAL').length,
-    active: signals.filter(s => s.status === 'ACTIVE').length
+    buy: (signals || []).filter(s => s?.signal_type === 'BUY').length,
+    sell: (signals || []).filter(s => s?.signal_type === 'SELL').length,
+    neutral: (signals || []).filter(s => s?.signal_type === 'NEUTRAL').length,
+    active: (signals || []).filter(s => s?.status === 'ACTIVE').length
   };
 
   return (
@@ -114,7 +124,7 @@ export const Dashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="font-heading text-2xl tracking-tight">Trading Signals</h1>
-            <p className="text-slate-500">AI-powered forex opportunities with predictive insights</p>
+            <p className="text-[var(--text-secondary)]">AI-powered forex & crypto opportunities</p>
           </div>
           <div className="flex items-center gap-3">
             <Button 
@@ -124,23 +134,27 @@ export const Dashboard = () => {
               className="btn-secondary text-sm"
               data-testid="refresh-signals"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              <span className="flex items-center">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </span>
             </Button>
             {token && (
               <Button 
                 size="sm" 
                 onClick={generateSignal}
-                disabled={generating}
+                disabled={generating || pairs.length === 0}
                 className="btn-primary text-sm"
                 data-testid="generate-signal"
               >
-                {generating ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4 mr-2" />
-                )}
-                Generate Signal
+                <span className="flex items-center">
+                  {generating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
+                  Generate Signal
+                </span>
               </Button>
             )}
           </div>
@@ -151,48 +165,51 @@ export const Dashboard = () => {
           <div className="glass-card p-5">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <Globe className="w-5 h-5 text-[#D4AF37]" />
+                <Globe className="w-5 h-5 text-[var(--accent-primary)]" />
                 <span className="font-medium">Market Status</span>
                 <span className={cn(
                   "px-3 py-1 rounded-full text-xs font-medium",
                   marketStatus.forex_open ? "market-open" : "market-closed"
                 )}>
-                  {marketStatus.forex_open ? 'Markets Open' : 'Markets Closed'}
+                  {marketStatus.forex_open ? 'Forex Open' : 'Forex Closed'}
                 </span>
+                {marketStatus.crypto_open && (
+                  <span className="market-open">Crypto 24/7</span>
+                )}
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
+              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
                 <Clock className="w-4 h-4" />
-                {marketStatus.server_time}
+                {marketStatus.server_time || 'Loading...'}
               </div>
             </div>
             
-            {marketStatus.sessions && (
+            {marketStatus.sessions && typeof marketStatus.sessions === 'object' && (
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {Object.entries(marketStatus.sessions).map(([key, session]) => (
                   <div key={key} className={cn(
                     "p-3 rounded-lg border transition-all",
-                    session.status === 'open' 
-                      ? "bg-[#2E8B57]/5 border-[#2E8B57]/20" 
+                    session?.status === 'open' 
+                      ? "bg-[var(--success)]/5 border-[var(--success)]/20" 
                       : "bg-white/5 border-white/5"
                   )}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm">{session.name}</span>
+                      <span className="font-medium text-sm">{session?.name || key}</span>
                       <span className={cn(
                         "w-2 h-2 rounded-full",
-                        session.status === 'open' ? "bg-[#2E8B57] animate-pulse" : "bg-slate-600"
+                        session?.status === 'open' ? "bg-[var(--success)] animate-pulse" : "bg-[var(--text-muted)]"
                       )} />
                     </div>
-                    <p className="text-xs text-slate-500">
-                      {session.open_time} - {session.close_time}
+                    <p className="text-xs text-[var(--text-muted)]">
+                      {session?.open_time || '00:00'} - {session?.close_time || '00:00'}
                     </p>
                   </div>
                 ))}
               </div>
             )}
             
-            {marketStatus.active_sessions?.length > 0 && (
-              <p className="mt-3 text-sm text-slate-400">
-                <span className="text-[#D4AF37]">Best trading time:</span> {marketStatus.active_sessions.join(' & ')} sessions overlap
+            {Array.isArray(marketStatus.active_sessions) && marketStatus.active_sessions.length > 0 && (
+              <p className="mt-3 text-sm text-[var(--text-secondary)]">
+                <span className="text-[var(--accent-primary)]">Best trading time:</span> {marketStatus.active_sessions.join(' & ')} sessions overlap
               </p>
             )}
           </div>
@@ -201,68 +218,68 @@ export const Dashboard = () => {
         {/* Stats Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="glass-card p-5 glass-card-hover">
-            <div className="flex items-center gap-2 text-[#2E8B57] mb-2">
+            <div className="flex items-center gap-2 text-[var(--success)] mb-2">
               <TrendingUp className="w-5 h-5" />
               <span className="text-2xl font-heading">{signalStats.buy}</span>
             </div>
-            <p className="text-xs text-slate-500 uppercase tracking-widest">Buy Signals</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Buy Signals</p>
           </div>
           <div className="glass-card p-5 glass-card-hover">
-            <div className="flex items-center gap-2 text-[#CD5C5C] mb-2">
+            <div className="flex items-center gap-2 text-[var(--danger)] mb-2">
               <TrendingDown className="w-5 h-5" />
               <span className="text-2xl font-heading">{signalStats.sell}</span>
             </div>
-            <p className="text-xs text-slate-500 uppercase tracking-widest">Sell Signals</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Sell Signals</p>
           </div>
           <div className="glass-card p-5 glass-card-hover">
-            <div className="flex items-center gap-2 text-slate-400 mb-2">
+            <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-2">
               <Minus className="w-5 h-5" />
               <span className="text-2xl font-heading">{signalStats.neutral}</span>
             </div>
-            <p className="text-xs text-slate-500 uppercase tracking-widest">Neutral</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Neutral</p>
           </div>
           <div className="glass-card p-5 glass-card-hover">
-            <div className="flex items-center gap-2 text-[#D4AF37] mb-2">
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse-gold" />
+            <div className="flex items-center gap-2 text-[var(--accent-primary)] mb-2">
+              <span className="w-2 h-2 rounded-full bg-[var(--accent-primary)] animate-glow-pulse" />
               <span className="text-2xl font-heading">{signalStats.active}</span>
             </div>
-            <p className="text-xs text-slate-500 uppercase tracking-widest">Active</p>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Active</p>
           </div>
         </div>
 
         {/* Filters */}
         <div className="glass-card p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-4 h-4 text-[#D4AF37]" />
+            <Filter className="w-4 h-4 text-[var(--accent-primary)]" />
             <span className="text-sm font-medium">Filters</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Select value={filters.pair} onValueChange={(v) => setFilters({...filters, pair: v})}>
-              <SelectTrigger data-testid="pair-filter" className="bg-[#0F1115] border-white/10">
+              <SelectTrigger data-testid="pair-filter" className="bg-[var(--bg-primary)] border-[var(--border-color)]">
                 <SelectValue placeholder="Currency Pair" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Pairs</SelectItem>
-                {pairs.map(pair => (
+                {(pairs || []).map(pair => (
                   <SelectItem key={pair} value={pair}>{pair}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={filters.timeframe} onValueChange={(v) => setFilters({...filters, timeframe: v})}>
-              <SelectTrigger data-testid="timeframe-filter" className="bg-[#0F1115] border-white/10">
+              <SelectTrigger data-testid="timeframe-filter" className="bg-[var(--bg-primary)] border-[var(--border-color)]">
                 <SelectValue placeholder="Timeframe" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Timeframes</SelectItem>
-                {timeframes.map(tf => (
+                {(timeframes || []).map(tf => (
                   <SelectItem key={tf} value={tf}>{tf}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={filters.type} onValueChange={(v) => setFilters({...filters, type: v})}>
-              <SelectTrigger data-testid="type-filter" className="bg-[#0F1115] border-white/10">
+              <SelectTrigger data-testid="type-filter" className="bg-[var(--bg-primary)] border-[var(--border-color)]">
                 <SelectValue placeholder="Signal Type" />
               </SelectTrigger>
               <SelectContent>
@@ -274,7 +291,7 @@ export const Dashboard = () => {
             </Select>
 
             <Select value={filters.status} onValueChange={(v) => setFilters({...filters, status: v})}>
-              <SelectTrigger data-testid="status-filter" className="bg-[#0F1115] border-white/10">
+              <SelectTrigger data-testid="status-filter" className="bg-[var(--bg-primary)] border-[var(--border-color)]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -291,28 +308,32 @@ export const Dashboard = () => {
         {/* Signals Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-[#D4AF37] animate-spin" />
+            <Loader2 className="w-8 h-8 text-[var(--accent-primary)] animate-spin" />
           </div>
-        ) : signals.length === 0 ? (
+        ) : !signals || signals.length === 0 ? (
           <div className="text-center py-20 glass-card">
-            <TrendingUp className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <TrendingUp className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
             <h3 className="font-heading text-xl mb-2">No Signals Available</h3>
-            <p className="text-slate-500 mb-6">Generate your first AI trading signal to get started.</p>
+            <p className="text-[var(--text-muted)] mb-6">Generate your first AI trading signal to get started.</p>
             {token && (
-              <Button onClick={generateSignal} disabled={generating} className="btn-primary">
-                {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                Generate Signal
+              <Button onClick={generateSignal} disabled={generating || pairs.length === 0} className="btn-primary">
+                <span className="flex items-center">
+                  {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                  Generate Signal
+                </span>
               </Button>
             )}
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {signals.map(signal => (
-              <SignalCard 
-                key={signal.signal_id} 
-                signal={signal} 
-                showPremiumLock={!isPremium}
-              />
+            {(signals || []).map(signal => (
+              signal && signal.signal_id ? (
+                <SignalCard 
+                  key={signal.signal_id} 
+                  signal={signal} 
+                  showPremiumLock={!isPremium}
+                />
+              ) : null
             ))}
           </div>
         )}
