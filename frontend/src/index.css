@@ -1,46 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   THEME ENGINE - CSS Variables
+   Default: Neon Gen Z | Toggle: Luxury Gold
+   ============================================ */
+
 :root {
-  /* Luxurious Dark Theme - The Gilded Vault */
-  --background: 220 15% 7%;
-  --background-paper: 220 18% 10%;
-  --background-subtle: 220 20% 13%;
+  /* Neon Gen Z Theme (Default) */
+  --bg-primary: #050505;
+  --bg-secondary: #0A0A0A;
+  --bg-card: rgba(5, 5, 5, 0.6);
+  --bg-glass: rgba(10, 10, 10, 0.7);
   
-  --foreground: 210 40% 96%;
-  --card: 220 18% 10%;
-  --card-foreground: 210 40% 96%;
-  --popover: 220 18% 10%;
-  --popover-foreground: 210 40% 96%;
+  --text-primary: #F0F0F0;
+  --text-secondary: #A0A0A0;
+  --text-muted: #666666;
   
-  /* Gold Primary */
-  --primary: 43 76% 52%;
-  --primary-hover: 43 70% 46%;
-  --primary-light: 47 84% 81%;
-  --primary-foreground: 220 15% 7%;
+  --accent-primary: #00FFF0;
+  --accent-secondary: #FF006E;
+  --accent-tertiary: #8338EC;
   
-  --secondary: 220 25% 14%;
-  --secondary-foreground: 210 40% 96%;
+  --border-color: rgba(0, 255, 240, 0.15);
+  --border-glow: rgba(0, 255, 240, 0.3);
   
-  --muted: 220 20% 13%;
-  --muted-foreground: 215 20% 55%;
+  --success: #00FF88;
+  --danger: #FF3366;
+  --warning: #FFD600;
   
-  --accent: 220 25% 14%;
-  --accent-foreground: 210 40% 96%;
+  --gradient-main: linear-gradient(135deg, #00FFF0 0%, #8338EC 100%);
+  --gradient-text: linear-gradient(to right, #00FFF0, #FF006E);
+  --gradient-card: linear-gradient(135deg, rgba(0, 255, 240, 0.1) 0%, rgba(131, 56, 236, 0.1) 100%);
   
-  /* Semantic Colors - Muted for elegance */
-  --success: 147 50% 36%;
-  --danger: 0 50% 58%;
-  --warning: 43 76% 52%;
-  --info: 217 91% 60%;
+  --glow-primary: 0 0 20px rgba(0, 255, 240, 0.5);
+  --glow-secondary: 0 0 15px rgba(255, 0, 110, 0.4);
+  --glow-accent: 0 0 10px rgba(131, 56, 236, 0.3);
   
-  --border: 220 20% 18%;
-  --input: 220 20% 14%;
-  --ring: 43 76% 52%;
+  --font-heading: 'Unbounded', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
   --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* Luxury Gold Theme */
+.luxury-theme {
+  --bg-primary: #0F1115;
+  --bg-secondary: #161920;
+  --bg-card: rgba(22, 25, 32, 0.8);
+  --bg-glass: rgba(15, 17, 21, 0.85);
+  
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  
+  --accent-primary: #D4AF37;
+  --accent-secondary: #AA8C2C;
+  --accent-tertiary: #F3E5AB;
+  
+  --border-color: rgba(212, 175, 55, 0.2);
+  --border-glow: rgba(212, 175, 55, 0.4);
+  
+  --success: #2E8B57;
+  --danger: #CD5C5C;
+  --warning: #D4AF37;
+  
+  --gradient-main: linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%);
+  --gradient-text: linear-gradient(to right, #D4AF37, #F3E5AB);
+  --gradient-card: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(170, 140, 44, 0.05) 100%);
+  
+  --glow-primary: 0 0 20px rgba(212, 175, 55, 0.4);
+  --glow-secondary: 0 0 15px rgba(212, 175, 55, 0.2);
+  --glow-accent: 0 0 10px rgba(243, 229, 171, 0.15);
+  
+  --font-heading: 'Playfair Display', serif;
 }
 
 * {
@@ -54,64 +92,90 @@ html {
 }
 
 body {
-  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #0F1115;
-  color: #F1F5F9;
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
 }
 
-/* Typography Classes */
+/* Typography */
 .font-heading {
-  font-family: 'Playfair Display', Georgia, serif;
-}
-
-.font-mono {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: var(--font-heading);
 }
 
 .font-body {
-  font-family: 'Manrope', sans-serif;
+  font-family: var(--font-body);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Gradient Text */
+.text-gradient {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 @layer base {
   * {
-    @apply border-border;
-  }
-  
-  body {
-    @apply bg-background text-foreground;
-  }
-  
-  h1, h2, h3 {
-    font-family: 'Playfair Display', Georgia, serif;
+    @apply border-[var(--border-color)];
   }
 }
 
 @layer components {
-  /* Luxurious Glass Cards */
+  /* ============================================
+     GLASSMORPHISM CARDS
+     ============================================ */
   .glass-card {
-    @apply bg-[#161920]/60 backdrop-blur-xl border border-white/5 rounded-xl;
-    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.4);
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+
+  .glass-card-glow {
+    @apply glass-card;
+    box-shadow: var(--glow-accent);
   }
 
   .glass-card-hover {
-    @apply hover:border-[#D4AF37]/30 hover:shadow-[0_0_20px_-5px_rgba(212,175,55,0.3)] transition-all duration-300;
+    transition: all 0.3s ease;
   }
 
-  /* Gold Glow Effect */
-  .gold-glow {
-    box-shadow: 0 0 20px -5px rgba(212, 175, 55, 0.4);
+  .glass-card-hover:hover {
+    border-color: var(--border-glow);
+    box-shadow: var(--glow-primary);
+    transform: translateY(-2px);
   }
 
-  .text-gold-glow {
-    text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  /* ============================================
+     NEON EFFECTS
+     ============================================ */
+  .neon-border {
+    border: 1px solid var(--accent-primary);
+    box-shadow: var(--glow-primary), inset 0 0 20px rgba(0, 255, 240, 0.05);
   }
 
-  /* Signal Cards - Luxurious Style */
+  .neon-glow {
+    box-shadow: var(--glow-primary);
+  }
+
+  .neon-text {
+    text-shadow: 0 0 10px var(--accent-primary), 0 0 20px var(--accent-primary);
+  }
+
+  /* ============================================
+     SIGNAL CARDS
+     ============================================ */
   .signal-card {
-    @apply glass-card p-6 glass-card-hover relative overflow-hidden;
+    @apply glass-card p-5 relative overflow-hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .signal-card::before {
@@ -120,8 +184,8 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+    height: 2px;
+    background: var(--gradient-main);
     opacity: 0;
     transition: opacity 0.3s;
   }
@@ -130,104 +194,204 @@ body {
     opacity: 1;
   }
 
+  .signal-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--glow-primary);
+    border-color: var(--border-glow);
+  }
+
   .signal-buy {
-    @apply text-[#2E8B57] bg-[#2E8B57]/10;
+    color: var(--success);
+    background: rgba(0, 255, 136, 0.1);
   }
 
   .signal-sell {
-    @apply text-[#CD5C5C] bg-[#CD5C5C]/10;
+    color: var(--danger);
+    background: rgba(255, 51, 102, 0.1);
   }
 
   .signal-neutral {
-    @apply text-slate-400 bg-slate-400/10;
+    color: var(--text-secondary);
+    background: rgba(160, 160, 160, 0.1);
   }
 
-  /* Navigation */
+  /* ============================================
+     BUTTONS
+     ============================================ */
+  .btn-primary {
+    background: var(--gradient-main);
+    color: var(--bg-primary);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.875rem 2rem;
+    border-radius: 0;
+    transform: skewX(-5deg);
+    transition: all 0.3s ease;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--glow-primary);
+    transform: skewX(-5deg) translateY(-2px);
+  }
+
+  .btn-primary span {
+    display: inline-block;
+    transform: skewX(5deg);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent-primary);
+    border: 1px solid var(--accent-primary);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    padding: 0.875rem 2rem;
+    border-radius: 0;
+    transform: skewX(-5deg);
+    transition: all 0.3s ease;
+  }
+
+  .btn-secondary:hover {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    box-shadow: var(--glow-primary);
+  }
+
+  .btn-secondary span {
+    display: inline-block;
+    transform: skewX(5deg);
+  }
+
+  /* Luxury theme buttons */
+  .luxury-theme .btn-primary {
+    border-radius: 9999px;
+    transform: none;
+  }
+
+  .luxury-theme .btn-primary:hover {
+    transform: translateY(-2px);
+  }
+
+  .luxury-theme .btn-primary span {
+    transform: none;
+  }
+
+  .luxury-theme .btn-secondary {
+    border-radius: 9999px;
+    transform: none;
+  }
+
+  .luxury-theme .btn-secondary span {
+    transform: none;
+  }
+
+  /* ============================================
+     NAVIGATION
+     ============================================ */
   .nav-link {
-    @apply px-4 py-2 text-slate-400 hover:text-[#D4AF37] transition-colors duration-300 relative;
+    @apply px-4 py-2 text-[var(--text-secondary)] transition-all duration-300 relative;
+  }
+
+  .nav-link:hover {
+    color: var(--accent-primary);
   }
 
   .nav-link.active {
-    @apply text-[#D4AF37];
+    color: var(--accent-primary);
   }
 
   .nav-link.active::after {
     content: '';
-    @apply absolute bottom-0 left-4 right-4 h-0.5 rounded-full;
-    background: linear-gradient(90deg, #D4AF37, #AA8C2C);
+    position: absolute;
+    bottom: 0;
+    left: 1rem;
+    right: 1rem;
+    height: 2px;
+    background: var(--gradient-main);
+    border-radius: 1px;
   }
 
-  /* Buttons - Luxurious */
-  .btn-primary {
-    @apply px-8 py-3 rounded-full font-semibold transition-all duration-300;
-    background: linear-gradient(135deg, #D4AF37 0%, #AA8C2C 100%);
-    color: #0F1115;
-  }
-
-  .btn-primary:hover {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
-    transform: translateY(-1px);
-  }
-
-  .btn-secondary {
-    @apply px-8 py-3 rounded-full font-semibold transition-all duration-300 bg-transparent text-[#D4AF37];
-    border: 1px solid rgba(212, 175, 55, 0.3);
-  }
-
-  .btn-secondary:hover {
-    @apply bg-[#D4AF37]/10;
-    border-color: rgba(212, 175, 55, 0.5);
-  }
-
-  /* Data Tables */
+  /* ============================================
+     DATA TABLES
+     ============================================ */
   .data-table {
     @apply w-full;
   }
 
   .data-table th {
-    @apply text-left text-xs uppercase tracking-widest text-slate-500 font-medium py-3 px-4;
+    @apply text-left text-xs uppercase tracking-widest font-semibold py-3 px-4;
+    color: var(--text-muted);
   }
 
   .data-table td {
-    @apply py-3 px-4 font-mono text-sm;
+    @apply py-3 px-4 text-sm;
+    font-family: var(--font-mono);
   }
 
   .data-table tr {
-    @apply border-b border-white/5 hover:bg-[#D4AF37]/5 transition-colors duration-200;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
   }
 
-  /* Confidence Colors */
+  .data-table tr:hover {
+    background: var(--gradient-card);
+  }
+
+  /* ============================================
+     CONFIDENCE COLORS
+     ============================================ */
   .confidence-high {
-    @apply text-[#2E8B57];
+    color: var(--success);
   }
 
   .confidence-medium {
-    @apply text-[#D4AF37];
+    color: var(--warning);
   }
 
   .confidence-low {
-    @apply text-[#CD5C5C];
+    color: var(--danger);
   }
 
-  /* Market Status Indicators */
+  /* ============================================
+     MARKET STATUS
+     ============================================ */
   .market-open {
-    @apply text-[#2E8B57] bg-[#2E8B57]/20 px-3 py-1 rounded-full text-xs font-medium;
+    color: var(--success);
+    background: rgba(0, 255, 136, 0.15);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
   .market-closed {
-    @apply text-[#CD5C5C] bg-[#CD5C5C]/20 px-3 py-1 rounded-full text-xs font-medium;
+    color: var(--danger);
+    background: rgba(255, 51, 102, 0.15);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
   }
 
-  /* Gold Accent Text */
-  .text-gold {
-    color: #D4AF37;
+  /* ============================================
+     SUBSCRIPTION TIERS
+     ============================================ */
+  .tier-free {
+    border-color: var(--text-muted);
   }
 
-  .text-gold-gradient {
-    background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 50%, #D4AF37 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .tier-pro {
+    border-color: var(--accent-primary);
+    box-shadow: var(--glow-accent);
+  }
+
+  .tier-premium {
+    border-color: var(--accent-secondary);
+    box-shadow: var(--glow-secondary);
+    background: var(--gradient-card);
   }
 }
 
@@ -240,8 +404,17 @@ body {
     animation: slideUp 0.4s ease-out;
   }
 
-  .animate-pulse-gold {
-    animation: pulse-gold 2s ease-in-out infinite;
+  .animate-glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
   }
 }
 
@@ -253,7 +426,7 @@ body {
 @keyframes slideUp {
   from { 
     opacity: 0; 
-    transform: translateY(15px); 
+    transform: translateY(20px); 
   }
   to { 
     opacity: 1; 
@@ -261,52 +434,68 @@ body {
   }
 }
 
-@keyframes pulse-gold {
+@keyframes glowPulse {
   0%, 100% { 
-    opacity: 1;
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+    box-shadow: var(--glow-primary);
   }
   50% { 
-    opacity: 0.8;
-    box-shadow: 0 0 10px 2px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 0 30px var(--accent-primary);
   }
 }
 
-/* Scrollbar - Elegant */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F1115;
+  background: var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: var(--accent-primary);
   border-radius: 3px;
+  opacity: 0.5;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.5);
+  opacity: 1;
 }
 
 /* Selection */
 ::selection {
-  background: rgba(212, 175, 55, 0.3);
-  color: #F1F5F9;
+  background: var(--accent-primary);
+  color: var(--bg-primary);
 }
 
-/* Chart Styles */
+/* ============================================
+   CHART CUSTOMIZATIONS
+   ============================================ */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: rgba(255, 255, 255, 0.03);
+  stroke: var(--border-color);
 }
 
-/* Luxury Gradient Background */
-.luxury-bg {
-  background: 
-    radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
-    #0F1115;
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+@media (max-width: 768px) {
+  .btn-primary, .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+  }
 }
